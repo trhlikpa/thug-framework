@@ -1,0 +1,22 @@
+<!doctype html>
+<html xmlns:font-weight="http://www.w3.org/1999/xhtml">
+   <body>
+
+      <h2 style = "text-align: center;">Url Form</h2>
+
+      {% for message in form.url.errors %}
+         <div>{{ message }}</div>
+      {% endfor %}
+
+      <form action="" method="post" name="addurl">
+         <fieldset>
+            <legend>Url Form</legend>
+            {{ form.hidden_tag() }}
+                {{ form.url.label }}
+                {{ form.url }}
+                {{ form.submit }}
+         </fieldset>
+      </form>
+
+   </body>
+</html>

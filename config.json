@@ -1,0 +1,13 @@
+{
+  "DEBUG": false,
+  "ADMINS":["email@example.com"],
+  "SECRET_KEY": "secret-key",
+  "THREADS_PER_PAGE": 2,
+
+  "CELERY_BROKER_URL": "redis://redis:6379",
+  "CELERY_RESULT_BACKEND": "redis://redis:6379",
+  "CELERY_TIMEZONE": "UTC",
+  "CELERY_ACCEPT_CONTENT":["application/json"],
+  "CELERY_TASK_SERIALIZER":"json",
+  "CELERY_RESULT_SERIALIZER":"json"
+}

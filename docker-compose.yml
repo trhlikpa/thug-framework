@@ -1,0 +1,29 @@
+db:
+  image: mongo:latest
+  environment:
+    - MONGO_PWD=mypass
+
+redis:
+  image: redis:latest
+  environment:
+    - REDIS_PWD=mypass
+
+web:
+  build: .
+  dockerfile: Dockerfile.web
+  entrypoint: ["/entrypoint.sh"]
+  command: ["python", "app.py"]
+  ports:
+    - "5000:5000"
+  links:
+    - db:database
+    - redis:redis
+
+worker:
+  build: .
+  dockerfile: Dockerfile.worker
+  entrypoint: ["/entrypoint.sh"]
+  command: ["celery", "worker", "-l", "info", "-A", "thugworker.thugtask"]
+  links:
+    - db:database
+    - redis:redis

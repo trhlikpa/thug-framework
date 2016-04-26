@@ -1,0 +1,6 @@
+wtforms
+celery
+flask
+Flask-WTF
+redis
+flower

@@ -1,0 +1,18 @@
+# image for web
+FROM honeynet/thug:latest
+
+RUN cd /opt/thug/src && \
+    python setup.py install
+
+COPY ./thugworker/entrypoint.sh /
+COPY ./thugworker /opt/project/thugworker/
+COPY ./config.json /opt/project/config.json
+
+RUN chmod +x /entrypoint.sh
+
+ENV PYTHONPATH /opt/project/
+WORKDIR /opt/project/thugworker/
+
+RUN pip install -r requirements.txt
+
+RUN adduser --disabled-password --gecos '' user
