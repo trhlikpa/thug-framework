@@ -1,9 +1,7 @@
 import json
-from flask import Flask, request, session, render_template, redirect, url_for, flash
-from flask.ext.wtf import Form
-from wtforms import StringField, SubmitField
-from wtforms.validators import URL
 
+import sys
+from flask import Flask, request, render_template, jsonify, url_for
 from thugworker.thugtask import add
 
 with open('../config.json') as f:
@@ -12,21 +10,46 @@ with open('../config.json') as f:
 app = Flask(__name__)
 app.config.update(config)
 
+tasks = list()
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
 def index():
-    form = UrlForm()
-
-    if request.method == 'POST':
-        if form.validate():
-            add.delay(form.url.data)
-
-    return render_template('index.html', form=form)
+    return render_template('index.html', tasks=tasks)
 
 
-class UrlForm(Form):
-    url = StringField('url', validators=[URL()])
-    submit = SubmitField("Send")
+@app.route('/thugtask', methods=['POST'])
+def thugtask():
+    data = {}
+    json_data = json.loads(request.data)
+
+    for entry in json_data:
+        data.setdefault(entry['name'], []).append(entry['value'])
+
+    return jsonify({}), 202, {'Location': url_for('taskstatus', task_id=1)}
+
+
+@app.route('/status/<task_id>')
+def taskstatus(task_id):
+    task = add.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+    else:
+        response = {
+            'state': task.state,
+            'status': str(task.info)
+        }
+    return jsonify(response)
 
 
 if __name__ == '__main__':

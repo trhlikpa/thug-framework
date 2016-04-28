@@ -5,6 +5,8 @@ db:
 
 redis:
   image: redis:latest
+  ports:
+    - "5672:5672"
   environment:
     - REDIS_PWD=mypass
 

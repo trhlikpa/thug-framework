@@ -13,3 +13,8 @@ celery.conf.update(config)
 def add(x):
     sleep(30)
     return x
+
+
+class ThugTask:
+    def __init__(self):
+        pass

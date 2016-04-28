@@ -4,3 +4,4 @@ flask
 Flask-WTF
 redis
 flower
+Flask-Sijax
