@@ -35,7 +35,7 @@
             </div>
         </div>
     </div>
-    <table id="example" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+    <table id="tasktable" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
         <thead>
         <tr>
             <th>TaskID</th>
@@ -47,11 +47,6 @@
         </thead>
         <tbody>
         <tr>
-            <td>1</td>
-            <td>xd</td>
-            <td>Nixon</td>
-            <td>xd</td>
-            <td>Nixon</td>
         </tr>
         </tbody>
     </table>
@@ -73,7 +68,16 @@
 
 <script>
     $(document).ready(function() {
-    $('#example').DataTable();
+        $('#tasktable').DataTable( {
+            "bProcessing": true,
+            "bServerSide": true,
+            "sPaginationType": "full_numbers",
+            "bjQueryUI": true,
+            "sAjaxSource": $SCRIPT_ROOT + "/get_tasks",
+            "createdRow": function ( row, data, index ) {
+                update_progress(row, data, index);
+            }
+        });
     });
 </script>
 
@@ -85,15 +89,26 @@
             data: JSON.stringify($("#urlform").serializeArray()),
             contentType: 'application/json;charset=UTF-8',
             dataType: 'json',
-            success: function (data, status, request) {
-                var status_url = request.getResponseHeader('Location');
+            success: function (data, status) {
+                $('#tasktable').dataTable().fnDraw();
             },
             error: function () {
-                alert('Unexpected error');
+                alert('Error');
             }
         });
         event.preventDefault();
     });
+
+    function update_progress(row, data, index) {
+        $.getJSON($SCRIPT_ROOT + '/status/' + data[0], function(status_data) {
+            data[3].set(status_data['state']);
+            if (status_data['state'] == 'PENDING' || status_data['state'] == 'PROGRESS') {
+                setTimeout(function() {
+                    update_progress(row, data, index);
+                }, 2000);
+            }
+        });
+    }
 </script>
 
 

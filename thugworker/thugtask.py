@@ -10,11 +10,6 @@ celery.conf.update(config)
 
 
 @celery.task
-def add(x):
+def check_url(x, y):
     sleep(30)
     return x
-
-
-class ThugTask:
-    def __init__(self):
-        pass

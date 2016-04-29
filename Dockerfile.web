@@ -1,18 +1,18 @@
-# image for web
+# image for webclient
 FROM honeynet/thug:latest
 
 RUN cd /opt/thug/src && \
     python setup.py install
 
 COPY ./webclient/entrypoint.sh /
-COPY ./webclient /opt/project/web/
+COPY ./webclient /opt/project/webclient/
 COPY ./thugworker /opt/project/thugworker/
 COPY ./config.json /opt/project/config.json
 
 RUN chmod +x /entrypoint.sh
 
 ENV PYTHONPATH /opt/project/
-WORKDIR /opt/project/web/
+WORKDIR /opt/project/webclient/
 
 RUN pip install -r requirements.txt
 

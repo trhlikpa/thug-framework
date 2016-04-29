@@ -1,8 +1,6 @@
 import json
-
-import sys
-from flask import Flask, request, render_template, jsonify, url_for
-from thugworker.thugtask import add
+from flask import Flask, request, render_template, jsonify
+from thugworker.thugtask import check_url
 
 with open('../config.json') as f:
     config = json.load(f)
@@ -11,6 +9,7 @@ app = Flask(__name__)
 app.config.update(config)
 
 tasks = list()
+tasks.append(('id', 'url', 'agent', 'status', 'checked_date'))
 
 
 @app.route('/')
@@ -26,31 +25,44 @@ def thugtask():
     for entry in json_data:
         data.setdefault(entry['name'], []).append(entry['value'])
 
-    return jsonify({}), 202, {'Location': url_for('taskstatus', task_id=1)}
+    if len(data['url']) <= 0:
+        return jsonify({}), 400
+
+    if len(data['useragent']) <= 0:
+        data['useragent'].append('winxpie60')
+
+    for agent in data['useragent']:
+        task = check_url.apply_async(args=[data['url'][0], agent])
+        tasks.append((task.id, data['url'][0], agent, 'ADDED', ''))
+
+    return jsonify({}), 202
 
 
 @app.route('/status/<task_id>')
 def taskstatus(task_id):
-    task = add.AsyncResult(task_id)
-    if task.state == 'PENDING':
-        response = {
-            'state': task.state,
-            'status': 'Pending...'
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'status': task.info.get('status', '')
-        }
-        if 'result' in task.info:
-            response['result'] = task.info['result']
-    else:
-        response = {
-            'state': task.state,
-            'status': str(task.info)
-        }
+    task = check_url.AsyncResult(task_id)
+
+    response = {
+        'state': task.state
+    }
+
     return jsonify(response)
 
 
+@app.route("/get_tasks")
+def get_tasks():
+    output = {
+        'iTotalRecords': len(tasks),
+        'iTotalDisplayRecords': len(tasks),
+        'sEcho': str(int(request.values['sEcho'])),
+        'aaData': []
+    }
+
+    for entry in tasks:
+        output['aaData'].append(entry)
+
+    return jsonify(output)
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000')
+    app.run(host='0.0.0.0', port=5000)
