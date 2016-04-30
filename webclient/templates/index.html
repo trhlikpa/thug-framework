@@ -41,8 +41,6 @@
             <th>TaskID</th>
             <th>URL</th>
             <th>Agent</th>
-            <th>Status</th>
-            <th>Checked</th>
         </tr>
         </thead>
         <tbody>
@@ -73,10 +71,7 @@
             "bServerSide": true,
             "sPaginationType": "full_numbers",
             "bjQueryUI": true,
-            "sAjaxSource": $SCRIPT_ROOT + "/get_tasks",
-            "createdRow": function ( row, data, index ) {
-                update_progress(row, data, index);
-            }
+            "sAjaxSource": $SCRIPT_ROOT + "/get_tasks"
         });
     });
 </script>
@@ -98,17 +93,6 @@
         });
         event.preventDefault();
     });
-
-    function update_progress(row, data, index) {
-        $.getJSON($SCRIPT_ROOT + '/status/' + data[0], function(status_data) {
-            data[3].set(status_data['state']);
-            if (status_data['state'] == 'PENDING' || status_data['state'] == 'PROGRESS') {
-                setTimeout(function() {
-                    update_progress(row, data, index);
-                }, 2000);
-            }
-        });
-    }
 </script>
 
 

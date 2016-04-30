@@ -1,15 +1,16 @@
 import json
+import io
 from flask import Flask, request, render_template, jsonify
 from thugworker.thugtask import check_url
 
-with open('../config.json') as f:
+with io.open('../config.json', encoding='utf8') as f:
     config = json.load(f)
 
 app = Flask(__name__)
 app.config.update(config)
 
 tasks = list()
-tasks.append(('id', 'url', 'agent', 'status', 'checked_date'))
+# tasks.append(('id', 'url', 'agent', 'status', 'checked_date'))
 
 
 @app.route('/')
@@ -33,7 +34,7 @@ def thugtask():
 
     for agent in data['useragent']:
         task = check_url.apply_async(args=[data['url'][0], agent])
-        tasks.append((task.id, data['url'][0], agent, 'ADDED', ''))
+        tasks.append((task.id, data['url'][0], agent))
 
     return jsonify({}), 202
 
