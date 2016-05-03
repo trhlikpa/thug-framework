@@ -10,7 +10,6 @@ app = Flask(__name__)
 app.config.update(config)
 
 tasks = list()
-# tasks.append(('id', 'url', 'agent', 'status', 'checked_date'))
 
 
 @app.route('/')
@@ -34,7 +33,11 @@ def thugtask():
 
     for agent in data['useragent']:
         task = check_url.apply_async(args=[data['url'][0], agent])
-        tasks.append((task.id, data['url'][0], agent))
+        tasks.append({
+            'task_id': task.id,
+            'url': data['url'][0],
+            'useragent': agent
+        })
 
     return jsonify({}), 202
 
@@ -44,7 +47,8 @@ def taskstatus(task_id):
     task = check_url.AsyncResult(task_id)
 
     response = {
-        'state': task.state
+        'state': task.state,
+        'result': task.info
     }
 
     return jsonify(response)

@@ -55,4 +55,5 @@ def check_url(url, useragent):
     json_path = os.path.join(log_path, 'analysis/json/analysis.json')
 
     with io.open(json_path) as result:
-        return result
+        json_data = json.load(result)
+        return json_data

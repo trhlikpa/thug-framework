@@ -8,7 +8,8 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/responsive/2.0.2/css/responsive.bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
 
 </head>
 <body>
@@ -41,6 +42,7 @@
             <th>TaskID</th>
             <th>URL</th>
             <th>Agent</th>
+            <th>Status</th>
         </tr>
         </thead>
         <tbody>
@@ -65,13 +67,25 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-        $('#tasktable').DataTable( {
+    $(document).ready(function () {
+        $('#tasktable').DataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sPaginationType": "full_numbers",
             "bjQueryUI": true,
-            "sAjaxSource": $SCRIPT_ROOT + "/get_tasks"
+            "sAjaxSource": $SCRIPT_ROOT + "/get_tasks",
+            "columns": [
+                {"data": "task_id"},
+                {"data": "url"},
+                {"data": "useragent"},
+                {
+                    "class": "status",
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": ""
+                }
+            ],
+            "order": [[1, 'asc']]
         });
     });
 </script>
