@@ -1,3 +1,4 @@
 celery
 redis
 flower
+pymongo

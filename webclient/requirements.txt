@@ -1,3 +1,4 @@
 celery
 flask
 redis
+pymongo
