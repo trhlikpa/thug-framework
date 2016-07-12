@@ -1,4 +1,4 @@
-from celery import Celery, task
+from celery import Celery
 import json
 import logging
 import hashlib
@@ -75,13 +75,25 @@ class ThugScript(ThugAPI):
 
 @celery.task(bind='true')
 def analyze_url(self, data):
+    uuid = self.request.id
+
+    json_data = {
+        '_state': 'STARTED'
+    }
+
+    db.tasks.update({'_id': str(uuid)}, json_data)
+
     thug = ThugScript(data)
     log_path = thug.analyze()
     json_path = os.path.join(log_path, 'analysis/json/analysis.json')
 
-    with io.open(json_path) as result:
-        json_data = json.load(result)
-        json_data['_id'] = self.request.id
-        db.tasks.insert(json_data)
+    try:
+        with io.open(json_path) as result:
+            data = json.load(result)
+            json_data['_state'] = 'SUCCESS'
+            json_data.update(data)
+    except Exception as error:
+        json_data['_state'] = 'FAILURE'
+    finally:
+        db.tasks.update({'_id': str(uuid)}, json_data)
         db_client.close()
-        return db_client.database_names()
