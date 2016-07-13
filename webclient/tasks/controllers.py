@@ -1,4 +1,5 @@
-from flask import Blueprint, abort, jsonify, request
+from bson import json_util
+from flask import Blueprint, abort, jsonify, request, Response
 from webclient.tasks.models import qet_tasks, qet_task, create_task, delete_task
 
 tasks_blueprint = Blueprint('tasks', __name__, url_prefix='/tasks')
@@ -8,10 +9,10 @@ tasks_blueprint = Blueprint('tasks', __name__, url_prefix='/tasks')
 def get_tasks_controller():
     tasks = qet_tasks()
 
-    if tasks is None:
-        abort(404)
+    response = Response(json_util.dumps({'tasks': tasks}, default=json_util.default),
+                        mimetype='application/json')
 
-    return jsonify({'tasks': tasks})
+    return response
 
 
 @tasks_blueprint.route('/<task_id>', methods=['GET'])
@@ -21,7 +22,10 @@ def get_task_controller(task_id):
     if task is None:
         abort(404)
 
-    return jsonify({'task': task})
+    response = Response(json_util.dumps({'task': task}, default=json_util.default),
+                        mimetype='application/json')
+
+    return response
 
 
 @tasks_blueprint.route('/', methods=['POST'])
@@ -37,4 +41,4 @@ def create_task_controller():
 @tasks_blueprint.route('/<task_id>', methods=['DELETE'])
 def delete_task_controller(task_id):
     delete_task(task_id)
-    return jsonify({'task': True})
+    return jsonify(None)

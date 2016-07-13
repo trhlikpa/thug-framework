@@ -6,7 +6,7 @@ RUN cd /opt/thug/src && \
 
 COPY ./webclient/entrypoint.sh /
 COPY ./webclient /opt/project/webclient/
-COPY ./thugworker /opt/project/thugworker/
+COPY ./worker /opt/project/worker/
 COPY ./config.json /opt/project/config.json
 
 RUN chmod +x /entrypoint.sh

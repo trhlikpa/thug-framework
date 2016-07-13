@@ -2,3 +2,4 @@ celery
 flask
 redis
 pymongo
+httplib2

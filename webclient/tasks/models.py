@@ -1,23 +1,22 @@
-from bson.json_util import dumps
-from thugworker.thugtask import analyze_url
-from webclient.dbcontext import db
 from uuid import uuid4
+from webclient.dbcontext import db
+from worker.tasks import analyze_url
 
 
 def qet_tasks():
     query = db.tasks.find({}, {'url': 1, 'timestamp': 1, '_id': 1, '_state': 1})
 
     if query.count() != 0:
-        return dumps(query)
+        return query
 
-    return None
+    return list()
 
 
 def qet_task(task_id):
     query = db.tasks.find({'_id': task_id})
 
     if query.count() != 0:
-        return dumps(query)
+        return query
 
     return None
 

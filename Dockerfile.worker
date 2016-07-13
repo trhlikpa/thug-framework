@@ -4,14 +4,14 @@ FROM honeynet/thug:latest
 RUN cd /opt/thug/src && \
     python setup.py install
 
-COPY ./thugworker/entrypoint.sh /
-COPY ./thugworker /opt/project/thugworker/
+COPY ./worker/entrypoint.sh /
+COPY ./worker /opt/project/worker/
 COPY ./config.json /opt/project/config.json
 
 RUN chmod +x /entrypoint.sh
 
 ENV PYTHONPATH /opt/project/
-WORKDIR /opt/project/thugworker/
+WORKDIR /opt/project/worker/
 
 RUN pip install -r requirements.txt
 

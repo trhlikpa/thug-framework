@@ -1,22 +1,9 @@
-from celery import Celery
-import json
-import logging
 import hashlib
+import logging
 import os
-import io
-from ThugAPI import *
-from Plugins.ThugPlugins import *
 from datetime import datetime
-from pymongo import MongoClient
-
-with io.open('../config.json', encoding='utf8') as f:
-    config = json.load(f)
-
-celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
-celery.conf.update(config)
-
-db_client = MongoClient(config['MONGODB_URL'])
-db = db_client.thug_database
+from Plugins.ThugPlugins import *
+from ThugAPI import *
 
 __log__ = logging.getLogger('Thug')
 __log__.setLevel(logging.WARN)
@@ -24,7 +11,7 @@ __cfgpath__ = '/etc/thug'
 __logpath__ = '/opt/thug/logs/'
 
 
-class ThugScript(ThugAPI):
+class Thug(ThugAPI):
     def __init__(self, cfg):
         if not cfg or 'url' not in cfg:
             raise ValueError('URL not found')
@@ -71,29 +58,3 @@ class ThugScript(ThugAPI):
 
         self.log_event()
         return log_path
-
-
-@celery.task(bind='true')
-def analyze_url(self, data):
-    uuid = self.request.id
-
-    json_data = {
-        '_state': 'STARTED'
-    }
-
-    db.tasks.update({'_id': str(uuid)}, json_data)
-
-    thug = ThugScript(data)
-    log_path = thug.analyze()
-    json_path = os.path.join(log_path, 'analysis/json/analysis.json')
-
-    try:
-        with io.open(json_path) as result:
-            data = json.load(result)
-            json_data['_state'] = 'SUCCESS'
-            json_data.update(data)
-    except Exception as error:
-        json_data['_state'] = 'FAILURE'
-    finally:
-        db.tasks.update({'_id': str(uuid)}, json_data)
-        db_client.close()

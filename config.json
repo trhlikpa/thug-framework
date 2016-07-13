@@ -10,5 +10,8 @@
   "CELERY_ACCEPT_CONTENT":["application/json"],
   "CELERY_TASK_SERIALIZER":"json",
   "CELERY_RESULT_SERIALIZER":"json",
-  "MONGODB_URL": "mongodb://db:27017"
+
+  "MONGODB_URL":"mongodb://db:27017",
+
+  "GEOIP2_PATH":""
 }

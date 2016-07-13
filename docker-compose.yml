@@ -23,7 +23,7 @@ worker:
   build: .
   dockerfile: Dockerfile.worker
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "-l", "info", "-A", "thugworker.thugtask"]
+  command: ["celery", "worker", "-l", "info", "-A", "worker.tasks"]
   links:
     - db:db
     - redis:redis
@@ -32,7 +32,7 @@ flower:
   build: .
   dockerfile: Dockerfile.worker
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "flower", "-A", "thugworker.thugtask", "--address=0.0.0.0", "--port=5555"]
+  command: ["celery", "flower", "-A", "worker.tasks", "--address=0.0.0.0", "--port=5555"]
   ports:
     - "5555:5555"
   links:
