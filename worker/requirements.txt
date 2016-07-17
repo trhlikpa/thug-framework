@@ -3,3 +3,4 @@ redis
 flower
 pymongo
 httplib2
+scrapy

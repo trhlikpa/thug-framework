@@ -4,7 +4,10 @@ import os
 from celery import Celery
 from httplib2 import Http, HttpLib2Error
 from pymongo import MongoClient
+from scrapy.crawler import CrawlerProcess
+
 from thugapi import Thug
+from worker.crawler import UrlSpider
 
 with io.open('../config.json', encoding='utf8') as f:
     config = json.load(f)
@@ -25,7 +28,7 @@ def is_url_alive(url):
     return False
 
 
-@celery.task(bind='true', time_limit=1800)
+@celery.task(bind='true', time_limit=600)
 def analyze_url(self, data):
     uuid = self.request.id
 
@@ -55,5 +58,11 @@ def analyze_url(self, data):
 
 
 @celery.task(bind='true', time_limit=120)
-def crawl_urls(base_url):
-    pass
+def crawl_urls(input_url, depth, only_internal=False):
+    process = CrawlerProcess({
+        'USER_AGENT': config['CRAWLER_USER_AGENT'],
+        'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
+    })
+
+    process.crawl(UrlSpider, url=input_url, depth=depth, only_internal=only_internal)
+    process.start()
