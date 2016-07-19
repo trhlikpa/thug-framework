@@ -4,3 +4,4 @@ redis
 pymongo
 httplib2
 scrapy
+apscheduler
