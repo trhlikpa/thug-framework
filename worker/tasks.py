@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from celery import Celery
+from celery import Celery, subtask, group
 from httplib2 import Http, HttpLib2Error
 from pymongo import MongoClient
 from scrapy.crawler import CrawlerProcess
@@ -34,7 +34,7 @@ def analyze_url(self, data):
 
     json_data = dict(_state='STARTED')
 
-    db.tasks.update({'_id': str(uuid)}, json_data)
+    db.tasks.update({'_id': str(uuid)}, json_data, True)
 
     try:
         thug = Thug(data)
@@ -58,11 +58,17 @@ def analyze_url(self, data):
 
 
 @celery.task(bind='true', time_limit=120)
-def crawl_urls(input_url, depth, only_internal=False):
+def crawl_urls(self, data):
     process = CrawlerProcess({
         'USER_AGENT': config['CRAWLER_USER_AGENT'],
         'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
     })
 
-    process.crawl(UrlSpider, url=input_url, depth=depth, only_internal=only_internal)
+    process.crawl(UrlSpider, data=data, callback=crawler_callback)
     process.start()
+
+
+def crawler_callback(request):
+    data = request.meta
+    data['url'] = request.url
+    analyze_url.apply_async(args=[data])

@@ -16,7 +16,7 @@ def get_jobs_controller():
 
 
 @jobs_blueprint.route('/<job_id>', methods=['GET'])
-def get_jobs_controller(job_id):
+def get_job_controller(job_id):
     job = get_job(job_id)
 
     if job is None:

@@ -1,6 +1,35 @@
 # image for web
 FROM honeynet/thug:latest
 
+RUN apt-get update && \
+    apt-get -y dist-upgrade && \
+    apt-get -y install --no-install-recommends \
+      python-dev \
+      python-all-dev \
+      libboost-dev \
+      libboost-python-dev \
+      libboost-system-dev \
+      libboost-thread-dev \
+      openssl \
+      libffi-dev \
+      libssl-dev \
+      libxml2-dev \
+      libxslt1-dev \
+      libjpeg8-dev \
+      zlib1g-dev \
+      build-essential \
+      curl \
+      dh-autoreconf \
+      git \
+      graphviz-dev \
+      gyp \
+      libemu-dev \
+      libffi-dev \
+      libfuzzy-dev \
+      libpcre3-dev \
+      libtool \
+      pkg-config
+
 RUN cd /opt/thug/src && \
     python setup.py install
 

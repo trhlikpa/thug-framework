@@ -1,5 +1,6 @@
 from uuid import uuid4
 from webclient.dbcontext import db
+from worker.tasks import crawl_urls
 
 
 def get_jobs():
@@ -34,8 +35,16 @@ def create_job(data):
 
     json_data = {
         '_id': str(uuid),
-        'base_url': data['url']
+        '_state': 'PENDING'
     }
+
+    db.jobs.insert(json_data)
+
+    input_data = {x: data[x] if x in data else ''
+                  for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth', 'only_internal']}
+
+    job = crawl_urls.apply_async(args=[input_data], task_id=str(uuid))
+    return job.id
 
 
 def delete_job(job_id):
