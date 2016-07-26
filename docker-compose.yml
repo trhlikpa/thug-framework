@@ -28,13 +28,11 @@ worker:
     - db:db
     - redis:redis
 
-flower:
+crawler:
   build: .
-  dockerfile: Dockerfile.worker
+  dockerfile: Dockerfile.crawler
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "flower", "-A", "worker.tasks", "--address=0.0.0.0", "--port=5555"]
-  ports:
-    - "5555:5555"
+  command: ["celery", "worker", "-l", "info", "-A", "crawler.tasks"]
   links:
     - db:db
     - redis:redis

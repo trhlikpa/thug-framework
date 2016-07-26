@@ -1,0 +1,36 @@
+# CRAWLER IMAGE BASED ON ALPINE
+FROM alpine:latest
+
+# INSTALL NON PYTHON DEPENDENCIES
+RUN apk update && \
+	apk upgrade && \
+    apk add python && \
+    apk add py-pip && \
+    apk add python-dev && \
+    apk add bash && \
+    apk add gcc && \
+    apk add musl-dev && \
+    apk add openssl-dev && \
+    apk add libxml2-dev && \
+    apk add libxslt-dev && \
+    apk add libffi-dev && \
+    apk add libxml2 && \
+    apk add libxslt
+
+# CREATE FOLDER STRUCTURE
+COPY ./crawler/entrypoint.sh /
+COPY ./crawler /opt/project/crawler/
+COPY ./config.json /opt/project/config.json
+
+RUN chmod +x /entrypoint.sh
+
+ENV PYTHONPATH /opt/project/
+WORKDIR /opt/project/crawler/
+
+RUN pip install -r requirements.txt
+
+RUN adduser -D -g '' user
+
+# CLEAN UP
+RUN apk del python-dev gcc musl-dev openssl-dev libxml2-dev libxslt-dev libffi-dev
+RUN rm -rf /var/cache/apk/*

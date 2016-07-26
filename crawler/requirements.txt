@@ -1,5 +1,4 @@
 celery
-flask
 redis
 pymongo
-apscheduler
+scrapy

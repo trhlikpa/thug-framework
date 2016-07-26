@@ -1,6 +1,6 @@
 from uuid import uuid4
 from webclient.dbcontext import db
-from worker.tasks import crawl_urls
+from crawler.tasks import crawl_urls
 
 
 def get_jobs():

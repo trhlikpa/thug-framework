@@ -1,41 +1,16 @@
 # image for webclient
-FROM honeynet/thug:latest
+FROM alpine:latest
 
-RUN apt-get update && \
-    apt-get -y dist-upgrade && \
-    apt-get -y install --no-install-recommends \
-      python-dev \
-      python-all-dev \
-      libboost-dev \
-      libboost-python-dev \
-      libboost-system-dev \
-      libboost-thread-dev \
-      openssl \
-      libffi-dev \
-      libssl-dev \
-      libxml2-dev \
-      libxslt1-dev \
-      libjpeg8-dev \
-      zlib1g-dev \
-      build-essential \
-      curl \
-      dh-autoreconf \
-      git \
-      graphviz-dev \
-      gyp \
-      libemu-dev \
-      libffi-dev \
-      libfuzzy-dev \
-      libpcre3-dev \
-      libtool \
-      pkg-config
-
-RUN cd /opt/thug/src && \
-    python setup.py install
+RUN apk update && \
+	apk upgrade && \
+	apk add python && \
+	apk add py-pip && \
+	apk add bash
 
 COPY ./webclient/entrypoint.sh /
 COPY ./webclient /opt/project/webclient/
 COPY ./worker /opt/project/worker/
+COPY ./crawler /opt/project/crawler/
 COPY ./config.json /opt/project/config.json
 
 RUN chmod +x /entrypoint.sh
@@ -45,4 +20,6 @@ WORKDIR /opt/project/webclient/
 
 RUN pip install -r requirements.txt
 
-RUN adduser --disabled-password --gecos '' user
+RUN adduser -D -g '' user
+
+RUN rm -rf /var/cache/apk/*

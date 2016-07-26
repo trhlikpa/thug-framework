@@ -1,4 +1,4 @@
-# image for web
+# image for worker
 FROM honeynet/thug:latest
 
 RUN apt-get update && \

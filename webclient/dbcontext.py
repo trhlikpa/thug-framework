@@ -1,6 +1,5 @@
 import io
 from time import sleep
-
 from flask import json
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
