@@ -1,9 +1,11 @@
 import io
 import json
+import os
 from flask import Flask
 
 # load configuration
-with io.open('../config.json', encoding='utf8') as f:
+__dir__ = os.path.dirname(os.path.realpath(__file__))
+with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
     config = json.load(f)
 
 app = Flask(__name__)

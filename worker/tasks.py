@@ -4,7 +4,8 @@ import os
 from celery import Celery
 from pymongo import MongoClient
 
-with io.open('../config.json', encoding='utf8') as f:
+__dir__ = os.path.dirname(os.path.realpath(__file__))
+with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
     config = json.load(f)
 
 celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])

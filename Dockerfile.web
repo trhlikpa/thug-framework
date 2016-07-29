@@ -13,13 +13,12 @@ COPY ./worker /opt/project/worker/
 COPY ./crawler /opt/project/crawler/
 COPY ./config.json /opt/project/config.json
 
-RUN chmod +x /entrypoint.sh
+RUN cd /opt/project/webclient && \
+    pip install -r requirements.txt
 
 ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/webclient/
-
-RUN pip install -r requirements.txt
-
 RUN adduser -D -g '' user
+RUN chmod +x /entrypoint.sh
 
 RUN rm -rf /var/cache/apk/*
