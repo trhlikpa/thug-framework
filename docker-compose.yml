@@ -23,7 +23,7 @@ worker:
   build: .
   dockerfile: Dockerfile.worker
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "-l", "info", "-A", "worker.tasks"]
+  command: ["celery", "worker", "-l", "info", "-A", "worker.tasks", "-Q", "thugtask"]
   links:
     - db:db
     - redis:redis
@@ -32,7 +32,7 @@ crawler:
   build: .
   dockerfile: Dockerfile.crawler
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "-l", "info", "-A", "crawler.tasks"]
+  command: ["celery", "worker", "-l", "info", "-A", "crawler.tasks", "-Q", "crawlertask"]
   links:
     - db:db
     - redis:redis

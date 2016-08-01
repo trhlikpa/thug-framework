@@ -20,6 +20,7 @@ RUN apk update && \
 # CREATE FOLDER STRUCTURE
 COPY ./crawler/entrypoint.sh /
 COPY ./crawler /opt/project/crawler/
+COPY ./worker /opt/project/worker/
 COPY ./config.json /opt/project/config.json
 
 RUN cd /opt/project/crawler && \

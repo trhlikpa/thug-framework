@@ -1,5 +1,6 @@
 from uuid import uuid4
 from webclient.dbcontext import db
+from webclient.api.tasks.models import create_task
 from crawler.tasks import crawl_urls
 
 

@@ -10,6 +10,10 @@
   "CELERY_ACCEPT_CONTENT":["application/json"],
   "CELERY_TASK_SERIALIZER":"json",
   "CELERY_RESULT_SERIALIZER":"json",
+  "CELERY_ROUTES":{
+    "worker.tasks.analyze_url": {"queue": "thugtask"},
+    "crawler.tasks.crawl_urls": {"queue": "crawlertask"}
+  },
 
   "MONGODB_URL":"mongodb://db:27017",
 
