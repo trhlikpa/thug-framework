@@ -1,6 +1,8 @@
 import io
 import json
 import os
+from uuid import uuid4
+
 from celery import Celery
 from pymongo import MongoClient
 
@@ -13,8 +15,7 @@ celery.conf.update(config)
 
 
 @celery.task(bind='true', time_limit=3600)
-def crawl_urls(self, data):
-
+def crawl_urls(self, input_data):
     from scrapy.crawler import CrawlerProcess
     from crawler.urlspider import UrlSpider
 
@@ -26,22 +27,31 @@ def crawl_urls(self, data):
         'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
     })
 
+    db.jobs.update({'_id': self.request.id}, dict(_state='STARTED'), True)
+
+    def _crawler_callback(link):
+        from worker.tasks import analyze_url
+
+        data = link.meta
+        data['url'] = link.url
+
+        uuid = str(uuid4())
+
+        json_data = {
+            '_id': uuid,
+            '_state': 'PENDING'
+        }
+
+        db.tasks.insert(json_data)
+        db.jobs.update_one({'_id': str(self.request.id)}, {'$push': {'tasks': uuid}}, True)
+        analyze_url.apply_async(args=[data], task_id=uuid)
+
     try:
-        process.crawl(UrlSpider, data=data, callback=crawler_callback)
+        process.crawl(UrlSpider, data=input_data, callback=_crawler_callback)
         process.start()
+        db.jobs.update({'_id': self.request.id}, {'$set': {'_state': 'SUCCESS'}}, True)
     except Exception as error:
-        print error.message
+        db.jobs.update({'_id': self.request.id}, {'$set': {'_state': 'FAILURE', 'error': error.message}}, True)
     finally:
+
         db_client.close()
-
-
-def crawler_callback(request):
-    from worker.tasks import analyze_url
-
-    data = request.meta
-    data['url'] = request.url
-    analyze_url.apply_async(args=[data])
-
-
-def print_this_link(request):
-    print('link: {}'.format(request.url))

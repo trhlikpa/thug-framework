@@ -22,10 +22,10 @@ def qet_task(task_id):
 
 
 def create_task(data):
-    uuid = uuid4()
+    uuid = str(uuid4())
 
     json_data = {
-        '_id': str(uuid),
+        '_id': uuid,
         '_state': 'PENDING'
     }
 
@@ -34,7 +34,7 @@ def create_task(data):
     input_data = {x: data[x] if x in data else ''
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
 
-    task = analyze_url.apply_async(args=[input_data], task_id=str(uuid))
+    task = analyze_url.apply_async(args=[input_data], task_id=uuid)
     return task.id
 
 

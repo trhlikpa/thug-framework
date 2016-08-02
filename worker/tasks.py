@@ -20,9 +20,11 @@ def analyze_url(self, data):
     db_client = MongoClient(config['MONGODB_URL'])
     db = db_client.thug_database
 
-    uuid = self.request.id
+    uuid = str(self.request.id)
     json_data = dict(_state='STARTED')
-    db.tasks.update({'_id': str(uuid)}, json_data, True)
+    db.tasks.update({'_id': uuid}, json_data, True)
+
+    json_data['_state'] = 'FAILURE'
 
     try:
         thug = Thug(data)
@@ -37,5 +39,5 @@ def analyze_url(self, data):
         json_data['_state'] = 'FAILURE'
         json_data['error'] = error.message
     finally:
-        db.tasks.update({'_id': str(uuid)}, json_data)
+        db.tasks.update({'_id': uuid}, json_data)
         db_client.close()

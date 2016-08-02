@@ -5,7 +5,7 @@ from crawler.tasks import crawl_urls
 
 
 def get_jobs():
-    query = db.jobs.find({}, {'base_url': 1, '_id': 1, 'depth': 1})
+    query = db.jobs.find({}, {'_id': 1, '_state': 1, 'base_url': 1, 'depth': 1, 'tasks': 1})
 
     if query.count() != 0:
         return query
@@ -23,7 +23,7 @@ def get_job(job_id):
 
 
 def create_job(data):
-    uuid = uuid4()
+    uuid = str(uuid4())
 
     if not data or 'url' not in data:
         return None
@@ -35,8 +35,11 @@ def create_job(data):
         return None
 
     json_data = {
-        '_id': str(uuid),
-        '_state': 'PENDING'
+        '_id': uuid,
+        '_state': 'PENDING',
+        'base_url': data['url'],
+        'depth': data['depth'],
+        'tasks': []
     }
 
     db.jobs.insert(json_data)
@@ -44,7 +47,7 @@ def create_job(data):
     input_data = {x: data[x] if x in data else ''
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth', 'only_internal']}
 
-    job = crawl_urls.apply_async(args=[input_data], task_id=str(uuid))
+    job = crawl_urls.apply_async(args=[input_data], task_id=uuid)
     return job.id
 
 
