@@ -10,15 +10,19 @@
   "CELERY_ACCEPT_CONTENT":["application/json"],
   "CELERY_TASK_SERIALIZER":"json",
   "CELERY_RESULT_SERIALIZER":"json",
+  "CELERYD_MAX_TASKS_PER_CHILD": "1",
   "CELERY_ROUTES":{
     "worker.tasks.analyze_url": {"queue": "thugtask"},
     "crawler.tasks.crawl_urls": {"queue": "crawlertask"}
   },
+
+  "THUG_TIMELIMIT": "600",
 
   "MONGODB_URL":"mongodb://db:27017",
 
   "GEOIP2_PATH":"",
 
   "CRAWLER_USER_AGENT":"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
-  "CRAWLER_DOWNLOAD_DELAY":"5"
+  "CRAWLER_DOWNLOAD_DELAY":"5",
+  "CRAWLER_TIMELIMIT": "3600"
 }

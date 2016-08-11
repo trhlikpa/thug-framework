@@ -27,7 +27,7 @@ def crawl_urls(self, input_data):
         'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
     })
 
-    db.jobs.update({'_id': self.request.id}, dict(_state='STARTED'), True)
+    db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'STARTED'}}, upsert=True)
 
     def _crawler_callback(link):
         from worker.tasks import analyze_url
@@ -39,19 +39,21 @@ def crawl_urls(self, input_data):
 
         json_data = {
             '_id': uuid,
+            'url': link.url,
             '_state': 'PENDING'
         }
 
         db.tasks.insert(json_data)
-        db.jobs.update_one({'_id': str(self.request.id)}, {'$push': {'tasks': uuid}}, True)
+        db.jobs.update_one({'_id': self.request.id}, {'$push': {'tasks': uuid}}, upsert=True)
         analyze_url.apply_async(args=[data], task_id=uuid)
 
     try:
         process.crawl(UrlSpider, data=input_data, callback=_crawler_callback)
-        process.start()
-        db.jobs.update({'_id': self.request.id}, {'$set': {'_state': 'SUCCESS'}}, True)
-    except Exception as error:
-        db.jobs.update({'_id': self.request.id}, {'$set': {'_state': 'FAILURE', 'error': error.message}}, True)
-    finally:
+        process.start(True)
 
+        db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'SUCCESS'}}, upsert=True)
+    except Exception as error:
+        db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'FAILURE', 'error': error.message}},
+                           upsert=True)
+    finally:
         db_client.close()

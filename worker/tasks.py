@@ -21,7 +21,11 @@ def analyze_url(self, data):
     db = db_client.thug_database
 
     uuid = str(self.request.id)
-    json_data = dict(_state='STARTED')
+    json_data = {
+        '_state': 'STARTED',
+        'url': data['url']
+    }
+
     db.tasks.update({'_id': uuid}, json_data, True)
 
     json_data['_state'] = 'FAILURE'

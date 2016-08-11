@@ -17,7 +17,7 @@ class UrlSpider(Spider):
         self.start_urls = [data['url']]
         self.custom_settings = dict(DEPTH_LIMIT=data['depth'])
         self._data = data
-        if data['only_internal']:
+        if data['only_internal'] == 'True':
             domain = get_domain(data['url'])
             self.allowed_domains = [domain]
 
