@@ -3,7 +3,7 @@ from flask import Blueprint, abort, jsonify, request, Response
 from webclient.api.jobs.models import get_job, get_jobs, create_job, delete_job
 
 # Register jobs blueprint
-jobs_blueprint = Blueprint('jobs', __name__, url_prefix='/jobs')
+jobs_blueprint = Blueprint('jobs', __name__, url_prefix='/api/jobs')
 
 
 @jobs_blueprint.route('/', methods=['GET'])

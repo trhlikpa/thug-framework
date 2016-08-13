@@ -3,7 +3,7 @@ from flask import Blueprint, abort, jsonify, request, Response
 from webclient.api.tasks.models import qet_tasks, qet_task, create_task, delete_task
 
 # Register task blueprint
-tasks_blueprint = Blueprint('tasks', __name__, url_prefix='/tasks')
+tasks_blueprint = Blueprint('tasks', __name__, url_prefix='/api/tasks')
 
 
 @tasks_blueprint.route('/', methods=['GET'])
