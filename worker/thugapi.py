@@ -12,7 +12,14 @@ __logpath__ = '/opt/thug/logs/'
 
 
 class Thug(ThugAPI):
+    """
+    Class represents thug instance
+    """
     def __init__(self, cfg):
+        """
+        Thug ctor
+        :param cfg: thug parameters
+        """
         if not cfg or 'url' not in cfg:
             raise ValueError('URL not found')
 
@@ -20,6 +27,10 @@ class Thug(ThugAPI):
         ThugAPI.__init__(self, None, __cfgpath__)
 
     def analyze(self):
+        """
+        Method starts thug analyze
+        :return: path to log file
+        """
         self.set_file_logging()
         self.set_json_logging()
         self.set_log_quiet()

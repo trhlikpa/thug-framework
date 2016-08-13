@@ -1,10 +1,13 @@
 from uuid import uuid4
-from webclient.dbcontext import db
-from webclient.api.tasks.models import create_task
 from crawler.tasks import crawl_urls
+from webclient.dbcontext import db
 
 
 def get_jobs():
+    """
+    Method queries every job from database
+    :return: list of jobs
+    """
     query = db.jobs.find({}, {'_id': 1, '_state': 1, 'base_url': 1, 'depth': 1, 'tasks': 1})
 
     if query.count() != 0:
@@ -14,6 +17,11 @@ def get_jobs():
 
 
 def get_job(job_id):
+    """
+    Method queries single job from database
+    :param job_id: Job id
+    :return: job with job_id or None
+    """
     query = db.jobs.find({'_id': job_id})
 
     if query.count() != 0:
@@ -23,6 +31,11 @@ def get_job(job_id):
 
 
 def create_job(data):
+    """
+    Method starts url crawling and updates database
+    :param data:input data
+    :return: job id
+    """
     uuid = str(uuid4())
 
     if not data or 'url' not in data:
@@ -52,12 +65,28 @@ def create_job(data):
 
 
 def delete_job(job_id):
+    """
+    Method deletes job
+    TODO
+    :param job_id: job id
+    """
     pass
 
 
 def update_job(job_id, **params):
+    """
+    Method updates job
+    TODO
+    :param job_id: job id
+    :param params: new parameters
+    """
     pass
 
 
 def pause_job(job_id):
+    """
+    Method pauses job
+    TODO
+    :param job_id: job id
+    """
     pass

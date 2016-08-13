@@ -4,17 +4,25 @@ import os
 from celery import Celery
 from pymongo import MongoClient
 
+# Load config file
 __dir__ = os.path.dirname(os.path.realpath(__file__))
 with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
     config = json.load(f)
 
+# Start celery and connect to redis
 celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
 
 
 @celery.task(bind='true', time_limit=600)
 def analyze_url(self, data):
+    """
+    Method puts new task into thug workers queue
+    :param self: self reference
+    :param data: input data
+    """
 
+    # lazy load of task dependencies
     from thugapi import Thug
 
     db_client = MongoClient(config['MONGODB_URL'])

@@ -4,6 +4,10 @@ from worker.tasks import analyze_url
 
 
 def qet_tasks():
+    """
+    Method queries every task from database
+    :return: list of tasks
+    """
     query = db.tasks.find({}, {'url': 1, 'timestamp': 1, '_id': 1, '_state': 1})
 
     if query.count() != 0:
@@ -13,6 +17,11 @@ def qet_tasks():
 
 
 def qet_task(task_id):
+    """
+    Method queries specified task from database
+    :param task_id: task id
+    :return: specified task
+    """
     query = db.tasks.find({'_id': task_id})
 
     if query.count() != 0:
@@ -22,6 +31,11 @@ def qet_task(task_id):
 
 
 def create_task(data):
+    """
+    Method puts new task into thug worker queue
+    :param data: input data
+    :return: task id
+    """
     uuid = str(uuid4())
 
     json_data = {
@@ -39,10 +53,19 @@ def create_task(data):
 
 
 def delete_task(task_id):
+    """
+    Method revokes task
+    :param task_id: task id
+    """
     analyze_url.AsyncResult(task_id).revoke(terminate=True)
     db.tasks.remove({'_id': task_id})
 
 
 def get_taskinfo(task_id):
+    """
+    Helper method returns info about task
+    :param task_id: task id
+    :return: task state and info
+    """
     task_result = analyze_url.AsyncResult(task_id)
     return task_result.state, task_result.info
