@@ -1,3 +1,4 @@
 celery
 redis
-pymongo
+pymongo==3.2.2
+geoip2

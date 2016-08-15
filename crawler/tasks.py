@@ -14,7 +14,7 @@ celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
 
 
-@celery.task(bind='true', time_limit=3600)
+@celery.task(bind='true', time_limit=float(config['CRAWLER_TIMELIMIT']))
 def crawl_urls(self, input_data):
     """
     Celery method that uses specified spider to recursively crawl urls

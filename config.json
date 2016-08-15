@@ -20,7 +20,7 @@
 
   "MONGODB_URL":"mongodb://db:27017",
 
-  "GEOIP2_PATH":"",
+  "GEOIP2_PATH":"/opt/project/worker/GeoLite2-Country.mmdb",
 
   "CRAWLER_USER_AGENT":"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)",
   "CRAWLER_DOWNLOAD_DELAY":"5",

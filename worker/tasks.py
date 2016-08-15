@@ -1,6 +1,8 @@
 import io
 import json
 import os
+import socket
+from urlparse import urlparse
 from celery import Celery
 from pymongo import MongoClient
 
@@ -14,42 +16,61 @@ celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
 
 
-@celery.task(bind='true', time_limit=600)
-def analyze_url(self, data):
+def get_ip(url):
+    """
+    Method resloves hostname to ip address
+    :param url: url to resolve
+    :return: ip address
+    """
+    netloc = urlparse(url).netloc
+    dom = netloc.split('@')[-1].split(':')[0]
+    return socket.gethostbyname(dom)
+
+
+@celery.task(bind='true', time_limit=float(config['THUG_TIMELIMIT']))
+def analyze_url(self, input_data):
     """
     Method puts new task into thug workers queue
     :param self: self reference
-    :param data: input data
+    :param input_data: input data
     """
 
     # lazy load of task dependencies
     from thugapi import Thug
+    from geoloc import get_geoloc_info
 
     db_client = MongoClient(config['MONGODB_URL'])
     db = db_client.thug_database
 
     uuid = str(self.request.id)
-    json_data = {
-        '_state': 'STARTED',
-        'url': data['url']
-    }
 
-    db.tasks.update({'_id': uuid}, json_data, True)
+    db.tasks.update_one({'_id': uuid}, {'$set': {'_state': 'STARTED'}}, upsert=True)
 
-    json_data['_state'] = 'FAILURE'
+    output_data = dict()
+    output_data['_state'] = 'FAILURE'
+
+    geoloc_data = dict()
 
     try:
-        thug = Thug(data)
+        ip = get_ip(input_data['url'])
+        geoloc_data = get_geoloc_info(ip)
+    except Exception as error:
+        geoloc_data['error'] = error.message
+
+    output_data['geolocation'] = geoloc_data.__dict__
+
+    try:
+        thug = Thug(input_data)
         log_path = thug.analyze()
         json_path = os.path.join(log_path, 'analysis/json/analysis.json')
 
         with io.open(json_path) as result:
-            data = json.load(result)
-            json_data['_state'] = 'SUCCESS'
-            json_data.update(data)
+            thug_data = json.load(result)
+            output_data['_state'] = 'SUCCESS'
+            output_data.update(thug_data)
     except Exception as error:
-        json_data['_state'] = 'FAILURE'
-        json_data['error'] = error.message
+        output_data['_state'] = 'FAILURE'
+        output_data['error'] = error.message
     finally:
-        db.tasks.update({'_id': uuid}, json_data)
+        db.tasks.update_one({'_id': uuid}, {'$set': output_data}, upsert=True)
         db_client.close()
