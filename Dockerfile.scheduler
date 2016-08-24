@@ -1,0 +1,29 @@
+# SCHEDULER IMAGE BASED ON ALPINE
+FROM alpine:latest
+
+# INSTALL NON PYTHON DEPENDENCIES
+RUN apk update && \
+	apk upgrade && \
+    apk add python && \
+    apk add py-pip && \
+    apk add python-dev && \
+    apk add bash
+
+# CREATE FOLDER STRUCTURE
+COPY ./scheduler/entrypoint.sh /
+COPY ./scheduler /opt/project/scheduler/
+COPY ./crawler /opt/project/crawler/
+COPY ./worker /opt/project/worker/
+COPY ./config.json /opt/project/config.json
+
+RUN cd /opt/project/scheduler && \
+    pip install -r requirements.txt
+
+ENV PYTHONPATH /opt/project/
+WORKDIR /opt/project/
+RUN adduser -D -g '' user
+RUN chmod +x /entrypoint.sh
+
+# CLEAN UP
+RUN apk del python-dev py-pip
+RUN rm -rf /var/cache/apk/*

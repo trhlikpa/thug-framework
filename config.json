@@ -19,6 +19,7 @@
   "THUG_TIMELIMIT": "600",
 
   "MONGODB_URL":"mongodb://db:27017",
+  "MONGODB_DATABASE":"thug_database",
 
   "GEOIP2_PATH":"/opt/project/worker/GeoLite2-Country.mmdb",
 
