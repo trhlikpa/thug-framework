@@ -1,14 +1,16 @@
+import datetime
 from uuid import uuid4
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
+from webclient import TIMEZONE
 
 
 def qet_tasks():
     """
-    Method queries every task from database
+    Method queries tasks from database
     :return: list of tasks
     """
-    query = db.tasks.find({}, {'url': 1, 'timestamp': 1, '_id': 1, '_state': 1})
+    query = db.tasks.find({}, {'url': 1, 'submit_time': 1, '_id': 1, '_state': 1})
 
     if query.count() != 0:
         return query
@@ -40,7 +42,8 @@ def create_task(data):
 
     json_data = {
         '_id': uuid,
-        '_state': 'PENDING'
+        '_state': 'PENDING',
+        'submit_time': datetime.datetime.now(TIMEZONE)
     }
 
     db.tasks.insert(json_data)

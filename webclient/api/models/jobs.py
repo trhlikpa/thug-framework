@@ -1,6 +1,8 @@
+import datetime
 from uuid import uuid4
 from crawler.tasks import crawl_urls
 from webclient.dbcontext import db
+from webclient import TIMEZONE
 
 
 def get_jobs():
@@ -8,7 +10,7 @@ def get_jobs():
     Method queries every job from database
     :return: list of jobs
     """
-    query = db.jobs.find({}, {'_id': 1, '_state': 1, 'base_url': 1, 'depth': 1, 'tasks': 1})
+    query = db.jobs.find()
 
     if query.count() != 0:
         return query
@@ -52,7 +54,8 @@ def create_job(data):
         '_state': 'PENDING',
         'base_url': data['url'],
         'depth': data['depth'],
-        'tasks': []
+        'tasks': [],
+        'submit_time': datetime.datetime.now(TIMEZONE)
     }
 
     db.jobs.insert(json_data)

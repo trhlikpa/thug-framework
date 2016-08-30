@@ -33,7 +33,6 @@ class Thug(ThugAPI):
         """
         self.set_file_logging()
         self.set_json_logging()
-        self.set_log_quiet()
 
         if len(self._cfg.get('useragent', '')) > 0:
             self.set_useragent(self._cfg['useragent'])

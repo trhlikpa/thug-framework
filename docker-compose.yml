@@ -4,7 +4,7 @@ db:
     - MONGO_PWD=mypass
 
 redis:
-  image: redis:latest
+  image: redis:3.2.2-alpine
   environment:
     - REDIS_PWD=mypass
 
@@ -23,7 +23,7 @@ worker:
   build: .
   dockerfile: Dockerfile.worker
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "worker.tasks", "-Q", "thugtask"]
+  command: ["celery", "worker", "--autoreload", "-l", "DEBUG", "-A", "worker.tasks", "-Q", "thugtask"]
   links:
     - db:db
     - redis:redis
@@ -32,16 +32,8 @@ crawler:
   build: .
   dockerfile: Dockerfile.crawler
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "crawler.tasks", "-Q", "crawlertask"]
+  command: ["celery", "worker", "--autoreload", "-l", "DEBUG", "-A", "crawler.tasks", "-Q", "crawlertask"]
   links:
     - db:db
     - redis:redis
 
-scheduler:
-  build: .
-  dockerfile: Dockerfile.scheduler
-  entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
-  links:
-    - db:db
-    - redis:redis

@@ -1,5 +1,5 @@
 from geoip2.database import Reader
-from worker.tasks import config
+from tasks import config
 
 reader = Reader(config['GEOIP2_PATH'])
 

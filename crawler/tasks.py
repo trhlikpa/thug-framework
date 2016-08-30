@@ -1,9 +1,12 @@
-import io
 import json
 import os
+import datetime
+import io
+import pytz
 from uuid import uuid4
 from celery import Celery
 from pymongo import MongoClient
+
 
 # Load config.json file
 __dir__ = os.path.dirname(os.path.realpath(__file__))
@@ -12,6 +15,8 @@ with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
 
 celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
+
+TIMEZONE = pytz.timezone(config['CELERY_TIMEZONE'])
 
 
 @celery.task(bind='true', time_limit=float(config['CRAWLER_TIMELIMIT']))
@@ -34,7 +39,8 @@ def crawl_urls(self, input_data):
         'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
     })
 
-    db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'STARTED'}}, upsert=True)
+    db.jobs.update_one({'_id': self.request.id}, {'$set': {
+        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
 
     def _crawler_callback(link):
         """
@@ -51,7 +57,8 @@ def crawl_urls(self, input_data):
         json_data = {
             '_id': uuid,
             'url': link.url,
-            '_state': 'PENDING'
+            '_state': 'PENDING',
+            'submit_time': datetime.datetime.now(TIMEZONE)
         }
 
         db.tasks.insert(json_data)
@@ -62,9 +69,10 @@ def crawl_urls(self, input_data):
         process.crawl(UrlSpider, data=input_data, callback=_crawler_callback)
         process.start(True)
 
-        db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'SUCCESS'}}, upsert=True)
+        db.jobs.update_one({'_id': self.request.id}, {'$set': {
+            '_state': 'SUCCESS', 'end_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
     except Exception as error:
-        db.jobs.update_one({'_id': self.request.id}, {'$set': {'_state': 'FAILURE', 'error': error.message}},
-                           upsert=True)
+        db.jobs.update_one({'_id': self.request.id}, {'$set': {
+            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
     finally:
         db_client.close()

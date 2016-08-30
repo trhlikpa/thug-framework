@@ -1,4 +1,4 @@
-celery
+celery==3.1.22
 redis
 pymongo
 scrapy

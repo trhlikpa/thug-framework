@@ -1,3 +1,3 @@
-celery
+celery==3.1.22
 redis
 celerybeat-mongo

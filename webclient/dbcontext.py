@@ -1,21 +1,16 @@
-import io
 from time import sleep
-from flask import json
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-
-# Load config file
-with io.open('../config.json', encoding='utf8') as f:
-    config = json.load(f)
+from webclient import config
 
 db_client = None
 db = None
 
 # Connect to database
-while True:
+for _ in range(1, 5):
     try:
         db_client = MongoClient(config['MONGODB_URL'])
-        db = db_client.thug_database
+        db = db_client['MONGODB_DATABASE']
         break
     except ConnectionFailure:
         print('Unreachable database. Trying to reconnect')
