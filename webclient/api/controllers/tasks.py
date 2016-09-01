@@ -8,7 +8,7 @@ from webclient.api.models.tasks import qet_task, delete_task, qet_tasks, create_
 class Task(Resource):
     def get(self, task_id):
         try:
-            tasks = qet_tasks()
+            tasks = qet_task(task_id)
 
             response = Response(json_util.dumps({'tasks': tasks}, default=json_util.default),
                                 mimetype='application/json')

@@ -1,5 +1,5 @@
 celery==3.1.22
 flask
 redis
-pymongo
+pymongo==3.2.2
 flask_restful

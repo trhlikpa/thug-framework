@@ -45,7 +45,7 @@ def analyze_url(self, input_data):
     from geoloc import get_geoloc_info
 
     db_client = MongoClient(config['MONGODB_URL'])
-    db = db_client.thug_database
+    db = db_client[config['MONGODB_DATABASE']]
 
     uuid = str(self.request.id)
 

@@ -10,7 +10,13 @@ def qet_tasks():
     Method queries tasks from database
     :return: list of tasks
     """
-    query = db.tasks.find({}, {'url': 1, 'submit_time': 1, '_id': 1, '_state': 1})
+    query = db.tasks.find({}, {'url': 1,
+                               'submit_time': 1,
+                               '_id': 1,
+                               '_state': 1,
+                               'start_time': 1,
+                               'end_time': 1
+                               })
 
     if query.count() != 0:
         return query

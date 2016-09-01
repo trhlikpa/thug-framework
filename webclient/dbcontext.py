@@ -10,7 +10,7 @@ db = None
 for _ in range(1, 5):
     try:
         db_client = MongoClient(config['MONGODB_URL'])
-        db = db_client['MONGODB_DATABASE']
+        db = db_client[config['MONGODB_DATABASE']]
         break
     except ConnectionFailure:
         print('Unreachable database. Trying to reconnect')

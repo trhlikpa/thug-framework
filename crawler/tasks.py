@@ -32,7 +32,7 @@ def crawl_urls(self, input_data):
     from crawler.urlspider import UrlSpider
 
     db_client = MongoClient(config['MONGODB_URL'])
-    db = db_client.thug_database
+    db = db_client[config['MONGODB_DATABASE']]
 
     process = CrawlerProcess({
         'USER_AGENT': config['CRAWLER_USER_AGENT'],
