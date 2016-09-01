@@ -40,7 +40,7 @@ def crawl_urls(self, input_data):
     })
 
     db.jobs.update_one({'_id': self.request.id}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
+        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}})
 
     def _crawler_callback(link):
         """
@@ -62,7 +62,7 @@ def crawl_urls(self, input_data):
         }
 
         db.tasks.insert(json_data)
-        db.jobs.update_one({'_id': self.request.id}, {'$push': {'tasks': uuid}}, upsert=True)
+        db.jobs.update_one({'_id': self.request.id}, {'$push': {'tasks': uuid}})
         analyze_url.apply_async(args=[data], task_id=uuid)
 
     try:
@@ -70,9 +70,9 @@ def crawl_urls(self, input_data):
         process.start(True)
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': {
-            '_state': 'SUCCESS', 'end_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
+            '_state': 'SUCCESS', 'end_time': datetime.datetime.now(TIMEZONE)}})
     except Exception as error:
         db.jobs.update_one({'_id': self.request.id}, {'$set': {
-            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
+            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.now(TIMEZONE)}})
     finally:
         db_client.close()

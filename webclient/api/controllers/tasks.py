@@ -1,7 +1,6 @@
 from bson import json_util
 from flask_restful import Resource, abort, reqparse
 from flask import Response
-
 from webclient.api.models.tasks import qet_task, delete_task, qet_tasks, create_task
 
 
@@ -19,7 +18,12 @@ class Task(Resource):
 
     def delete(self, task_id):
         try:
-            return delete_task(task_id)
+            result = delete_task(task_id)
+
+            response = Response(json_util.dumps({'task': result}),
+                                mimetype='application/json')
+
+            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
 
@@ -37,8 +41,12 @@ class TaskList(Resource):
             parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
 
             args = parser.parse_args()
+            task_id = create_task(args)
 
-            return create_task(args)
+            response = Response(json_util.dumps({'task': task_id}),
+                                mimetype='application/json')
+
+            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
 

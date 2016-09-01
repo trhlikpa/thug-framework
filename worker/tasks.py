@@ -50,7 +50,7 @@ def analyze_url(self, input_data):
     uuid = str(self.request.id)
 
     db.tasks.update_one({'_id': uuid}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}}, upsert=True)
+        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}})
 
     output_data = dict()
     output_data['_state'] = 'FAILURE'
@@ -77,5 +77,5 @@ def analyze_url(self, input_data):
         output_data['error'] = error.message
     finally:
         output_data['end_time'] = datetime.datetime.now(TIMEZONE)
-        db.tasks.update_one({'_id': uuid}, {'$set': output_data}, upsert=True)
+        db.tasks.update_one({'_id': uuid}, {'$set': output_data})
         db_client.close()
