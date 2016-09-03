@@ -2,7 +2,19 @@ import datetime
 from uuid import uuid4
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
-from webclient import TIMEZONE
+from webclient import config
+
+
+def normalize_state(task):
+    if 'start_time' in task:
+        start_time = task['start_time']
+        now_time = datetime.datetime.utcnow()
+        limit_time = start_time + datetime.timedelta(seconds=float(config['THUG_TIMELIMIT']))
+        if now_time > limit_time:
+            _, info = get_taskinfo(task['_id'])
+            task['_state'] = 'FAILURE'
+            task['error'] = str(info)
+            db.tasks.update_one({},  {'$set': task})
 
 
 def qet_tasks():
@@ -10,15 +22,19 @@ def qet_tasks():
     Method queries tasks from database
     :return: list of tasks
     """
-    query = db.tasks.find({}, {'url': 1,
-                               'submit_time': 1,
-                               '_id': 1,
-                               '_state': 1,
-                               'start_time': 1,
-                               'end_time': 1
-                               })
+    query = list(db.tasks.find({}, {'url': 1,
+                                    'submit_time': 1,
+                                    '_id': 1,
+                                    '_state': 1,
+                                    'start_time': 1,
+                                    'end_time': 1
+                                    }, modifiers={"$snapshot": True}))
 
-    if query.count() != 0:
+    if query.count != 0:
+        for task in query:
+            if task['_state'] == 'STARTED':
+                normalize_state(task)
+
         return query
 
     return list()
@@ -30,12 +46,15 @@ def qet_task(task_id):
     :param task_id: task id
     :return: specified task
     """
-    query = db.tasks.find({'_id': task_id})
+    task = db.tasks.find_one({'_id': task_id})
 
-    if query.count() != 0:
-        return query
+    if task is None:
+        return None
 
-    return None
+    if task['_state'] == 'STARTED':
+        normalize_state(task)
+
+    return task
 
 
 def create_task(data):
@@ -49,7 +68,7 @@ def create_task(data):
     json_data = {
         '_id': uuid,
         '_state': 'PENDING',
-        'submit_time': datetime.datetime.now(TIMEZONE)
+        'submit_time': datetime.datetime.utcnow()
     }
 
     db.tasks.insert(json_data)

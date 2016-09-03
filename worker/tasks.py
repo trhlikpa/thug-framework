@@ -18,8 +18,6 @@ with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
 celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
 
-TIMEZONE = pytz.timezone(config['CELERY_TIMEZONE'])
-
 
 def get_ip(url):
     """
@@ -50,7 +48,7 @@ def analyze_url(self, input_data):
     uuid = str(self.request.id)
 
     db.tasks.update_one({'_id': uuid}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}})
+        '_state': 'STARTED', 'start_time': datetime.datetime.utcnow()}})
 
     output_data = dict()
     output_data['_state'] = 'FAILURE'
@@ -76,6 +74,6 @@ def analyze_url(self, input_data):
         output_data['_state'] = 'FAILURE'
         output_data['error'] = error.message
     finally:
-        output_data['end_time'] = datetime.datetime.now(TIMEZONE)
+        output_data['end_time'] = datetime.datetime.utcnow()
         db.tasks.update_one({'_id': uuid}, {'$set': output_data})
         db_client.close()

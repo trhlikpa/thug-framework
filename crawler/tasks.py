@@ -16,8 +16,6 @@ with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
 celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
 celery.conf.update(config)
 
-TIMEZONE = pytz.timezone(config['CELERY_TIMEZONE'])
-
 
 @celery.task(bind='true', time_limit=float(config['CRAWLER_TIMELIMIT']))
 def crawl_urls(self, input_data):
@@ -40,7 +38,7 @@ def crawl_urls(self, input_data):
     })
 
     db.jobs.update_one({'_id': self.request.id}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.now(TIMEZONE)}})
+        '_state': 'STARTED', 'start_time': datetime.datetime.utcnow()}})
 
     def _crawler_callback(link):
         """
@@ -58,7 +56,7 @@ def crawl_urls(self, input_data):
             '_id': uuid,
             'url': link.url,
             '_state': 'PENDING',
-            'submit_time': datetime.datetime.now(TIMEZONE)
+            'submit_time': datetime.datetime.utcnow()
         }
 
         db.tasks.insert(json_data)
@@ -70,9 +68,9 @@ def crawl_urls(self, input_data):
         process.start(True)
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': {
-            '_state': 'SUCCESS', 'end_time': datetime.datetime.now(TIMEZONE)}})
+            '_state': 'SUCCESS', 'end_time': datetime.datetime.utcnow()}})
     except Exception as error:
         db.jobs.update_one({'_id': self.request.id}, {'$set': {
-            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.now(TIMEZONE)}})
+            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.utcnow()}})
     finally:
         db_client.close()
