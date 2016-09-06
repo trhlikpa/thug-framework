@@ -4,6 +4,7 @@ FROM alpine:latest
 # INSTALL NON PYTHON DEPENDENCIES
 RUN apk update && \
 	apk upgrade && \
+	apk add git && \
     apk add python && \
     apk add py-pip && \
     apk add python-dev && \
@@ -15,6 +16,7 @@ RUN apk update && \
     apk add libxslt-dev && \
     apk add libffi-dev && \
     apk add libxml2 && \
+    apk add py-setuptools && \
     apk add libxslt
 
 # CREATE FOLDER STRUCTURE
@@ -23,6 +25,11 @@ COPY ./crawler /opt/project/crawler/
 COPY ./worker /opt/project/worker/
 COPY ./config.json /opt/project/config.json
 
+# IMPORT THUG WEB BROWSER PERSONALITIES
+RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
+    cp /tmp/thug/src/DOM/personalities/* /opt/project/crawler/personalities/
+
+# INSTALL PYTHON DEPENDENCIES
 RUN cd /opt/project/crawler && \
     pip install -r requirements.txt
 
@@ -32,5 +39,6 @@ RUN adduser -D -g '' user
 RUN chmod +x /entrypoint.sh
 
 # CLEAN UP
-RUN apk del python-dev py-pip gcc musl-dev openssl-dev libxml2-dev libxslt-dev libffi-dev
+RUN apk del python-dev py-pip gcc musl-dev openssl-dev libxml2-dev libxslt-dev libffi-dev git
 RUN rm -rf /var/cache/apk/*
+RUN rm -rf /tmp/thug/*

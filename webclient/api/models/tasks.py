@@ -87,7 +87,6 @@ def delete_task(task_id):
     """
     analyze_url.AsyncResult(task_id).revoke()
     result_db = db.tasks.delete_one({'_id': task_id})
-    result_worker, _ = get_taskinfo(task_id)
 
     if result_db.deleted_count > 0:
         return True

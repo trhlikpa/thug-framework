@@ -1,12 +1,11 @@
-import json
-import os
 import datetime
 import io
-import pytz
+import json
+import os
 from uuid import uuid4
 from celery import Celery
 from pymongo import MongoClient
-
+from crawler.useragents import get_useragent_string
 
 # Load config.json file
 __dir__ = os.path.dirname(os.path.realpath(__file__))
@@ -33,7 +32,7 @@ def crawl_urls(self, input_data):
     db = db_client[config['MONGODB_DATABASE']]
 
     process = CrawlerProcess({
-        'USER_AGENT': config['CRAWLER_USER_AGENT'],
+        'USER_AGENT': get_useragent_string(input_data.get('useragent', None)),
         'DOWNLOAD_DELAY': config['CRAWLER_DOWNLOAD_DELAY']
     })
 
