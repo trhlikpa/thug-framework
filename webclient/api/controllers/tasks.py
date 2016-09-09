@@ -29,17 +29,18 @@ class Task(Resource):
 
 class TaskList(Resource):
     def post(self):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('url', type=str, help='URL to analyze by thug', required=True)
+        parser.add_argument('useragent', type=str, help='Browser personality', required=True)
+        parser.add_argument('java', type=str, help='Java plugin version')
+        parser.add_argument('shockwave', type=str, help='Shockwave Flash plugin version')
+        parser.add_argument('adobepdf', type=str, help='Adobe Acrobat Reader version')
+        parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
+
+        args = parser.parse_args()
+
         try:
-            parser = reqparse.RequestParser()
-
-            parser.add_argument('url', type=str, help='URL to analyze by thug')
-            parser.add_argument('useragent', type=str, help='Browser personality')
-            parser.add_argument('java', type=str, help='Java plugin version')
-            parser.add_argument('shockwave', type=str, help='Shockwave Flash plugin version')
-            parser.add_argument('adobepdf', type=str, help='Adobe Acrobat Reader version')
-            parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
-
-            args = parser.parse_args()
             task_id = create_task(args)
 
             response = Response(json_util.dumps({'task': task_id}),

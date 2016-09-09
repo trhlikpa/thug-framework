@@ -13,7 +13,7 @@
   "CELERYD_MAX_TASKS_PER_CHILD": "1",
   "CELERY_ROUTES":{
     "worker.tasks.analyze_url": {"queue": "thugtask"},
-    "crawler.tasks.crawl_urls": {"queue": "crawlertask"}
+    "crawler.tasks.execute_job": {"queue": "crawlertask"}
   },
 
   "THUG_TIMELIMIT": "600",

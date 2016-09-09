@@ -3,8 +3,8 @@ import json
 import os
 import socket
 import datetime
-import pytz
 from urlparse import urlparse
+from bson import ObjectId
 from celery import Celery
 from pymongo import MongoClient
 
@@ -45,10 +45,10 @@ def analyze_url(self, input_data):
     db_client = MongoClient(config['MONGODB_URL'])
     db = db_client[config['MONGODB_DATABASE']]
 
-    uuid = str(self.request.id)
+    oid = str(self.request.id)
 
-    db.tasks.update_one({'_id': uuid}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.utcnow()}})
+    db.tasks.update_one({'_id': ObjectId(oid)}, {'$set': {
+        '_state': 'STARTED', 'start_time': datetime.datetime.utcnow()}}, upsert=True)
 
     output_data = dict()
     output_data['_state'] = 'FAILURE'
@@ -75,5 +75,5 @@ def analyze_url(self, input_data):
         output_data['error'] = error.message
     finally:
         output_data['end_time'] = datetime.datetime.utcnow()
-        db.tasks.update_one({'_id': uuid}, {'$set': output_data})
+        db.tasks.update_one({'_id': ObjectId(oid)}, {'$set': output_data})
         db_client.close()

@@ -1,5 +1,5 @@
 import datetime
-from uuid import uuid4
+from bson import ObjectId
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
 from webclient import config
@@ -14,7 +14,9 @@ def normalize_state(task):
             _, info = get_taskinfo(task['_id'])
             task['_state'] = 'FAILURE'
             task['error'] = str(info)
-            db.tasks.update_one({},  {'$set': task})
+            key = task['_id']
+            task.pop('_id', None)
+            db.tasks.update_one({'_id': ObjectId(key)},  {'$set': task})
 
 
 def qet_tasks():
@@ -23,11 +25,12 @@ def qet_tasks():
     :return: list of tasks
     """
     query = list(db.tasks.find({}, {'url': 1,
-                                    'submit_time': 1,
                                     '_id': 1,
                                     '_state': 1,
                                     'start_time': 1,
-                                    'end_time': 1
+                                    'end_time': 1,
+                                    'thug': 1,
+                                    'geolocation': 1,
                                     }, modifiers={"$snapshot": True}))
 
     if query.count != 0:
@@ -46,7 +49,7 @@ def qet_task(task_id):
     :param task_id: task id
     :return: specified task
     """
-    task = db.tasks.find_one({'_id': task_id})
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if task is None:
         return None
@@ -63,21 +66,17 @@ def create_task(data):
     :param data: input data
     :return: task id
     """
-    uuid = str(uuid4())
-
     json_data = {
-        '_id': uuid,
-        '_state': 'PENDING',
-        'submit_time': datetime.datetime.utcnow()
+        '_state': 'PENDING'
     }
 
-    db.tasks.insert(json_data)
+    oid = db.tasks.insert(json_data)
 
     input_data = {x: data[x] if x in data else ''
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
 
-    task = analyze_url.apply_async(args=[input_data], task_id=uuid)
-    return task.id
+    task = analyze_url.apply_async(args=[input_data], task_id=str(oid))
+    return oid
 
 
 def delete_task(task_id):
@@ -86,7 +85,7 @@ def delete_task(task_id):
     :param task_id: task id
     """
     analyze_url.AsyncResult(task_id).revoke()
-    result_db = db.tasks.delete_one({'_id': task_id})
+    result_db = db.tasks.delete_one({'_id': ObjectId(task_id)})
 
     if result_db.deleted_count > 0:
         return True

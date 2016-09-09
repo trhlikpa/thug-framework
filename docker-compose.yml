@@ -41,7 +41,7 @@ scheduler:
   build: .
   dockerfile: Dockerfile.scheduler
   entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
+  command: ["celery", "-l", "DEBUG", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
   links:
     - db:db
     - redis:redis

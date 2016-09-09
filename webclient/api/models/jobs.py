@@ -1,6 +1,5 @@
-import datetime
-from uuid import uuid4
-from crawler.tasks import crawl_urls
+from bson import ObjectId
+from crawler.tasks import execute_job
 from webclient.dbcontext import db
 
 
@@ -23,7 +22,7 @@ def get_job(job_id):
     :param job_id: Job id
     :return: job with job_id or None
     """
-    job = db.jobs.find_one({'_id': job_id})
+    job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
     if job is None:
         return None
@@ -37,35 +36,23 @@ def create_job(data):
     :param data:input data
     :return: job id
     """
-    uuid = str(uuid4())
-
-    if not data or 'url' not in data:
-        return None
-
-    if 'depth' not in data or data['depth'] < 0:
-        return None
-
-    if 'only_internal' not in data:
-        return None
-
     input_data = {x: data[x] if x in data else '' for x in
-                  ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth',
-                   'only_internal'
-                   ]}
+                  {'useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth',
+                   'only_internal', 'type'
+                   }}
 
     json_data = {
-        '_id': uuid,
         '_state': 'PENDING',
-        'tasks': [],
-        'submit_time': datetime.datetime.utcnow()
+        'tasks': []
     }
 
     json_data.update(input_data)
 
-    db.jobs.insert(json_data)
+    oid = db.jobs.insert(json_data)
 
-    job = crawl_urls.apply_async(args=[input_data], task_id=uuid)
-    return job.id
+    execute_job.apply_async(args=[input_data], task_id=str(oid))
+
+    return oid
 
 
 def delete_job(job_id):
@@ -74,8 +61,8 @@ def delete_job(job_id):
     TODO
     :param job_id: job id
     """
-    crawl_urls.AsyncResult(job_id).revoke()
-    result_db = db.jobs.delete_one({'_id': job_id})
+    execute_job.AsyncResult(job_id).revoke()
+    result_db = db.jobs.delete_one({'_id': ObjectId(job_id)})
 
     if result_db.deleted_count > 0:
         return True
