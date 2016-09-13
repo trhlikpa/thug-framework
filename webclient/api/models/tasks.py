@@ -76,7 +76,7 @@ def create_task(data):
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
 
     task = analyze_url.apply_async(args=[input_data], task_id=str(oid))
-    return oid
+    return str(oid)
 
 
 def delete_task(task_id):

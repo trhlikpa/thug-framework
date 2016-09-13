@@ -1,6 +1,7 @@
 from bson import ObjectId
 from crawler.tasks import execute_job
 from webclient.dbcontext import db
+from webclient.api.models.schedules import create_schedule
 
 
 def get_jobs():
@@ -41,6 +42,15 @@ def create_job(data):
                    'only_internal', 'type'
                    }}
 
+    if data.get('crontab', None) is not None:
+        schedule_data = {
+            'task': 'crawler.tasks.execute_job',
+            'crontab': data['crontab'],
+            'args': list(input_data)
+        }
+
+        create_schedule(schedule_data)
+
     json_data = {
         '_state': 'PENDING',
         'tasks': []
@@ -52,7 +62,7 @@ def create_job(data):
 
     execute_job.apply_async(args=[input_data], task_id=str(oid))
 
-    return oid
+    return str(oid)
 
 
 def delete_job(job_id):

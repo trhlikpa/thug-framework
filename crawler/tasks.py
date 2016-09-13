@@ -33,7 +33,12 @@ def execute_job(self, input_data):
     db = db_client[config['MONGODB_DATABASE']]
 
     db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': {
-            '_state': 'STARTED', 'start_time': datetime.datetime.utcnow()}}, upsert=True)
+        '_state': 'STARTED',
+        'start_time': datetime.datetime.utcnow()}}, upsert=True)
+
+    if 'schedule_id' in input_data:
+        db.schedules.update_one({'_id': ObjectId(input_data['schedule_id'])},
+                                {'$push': {'previous_runs': str(self.request.id)}})
 
     db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': input_data})
 
@@ -53,7 +58,7 @@ def execute_job(self, input_data):
         }
 
         oid = db.tasks.insert(json_data)
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$push': {'tasks': oid}})
+        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$push': {'tasks': str(oid)}})
         analyze_url.apply_async(args=[data], task_id=str(oid))
 
     try:

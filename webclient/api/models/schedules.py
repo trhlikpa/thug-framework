@@ -26,8 +26,12 @@ def create_schedule(data):
                   ['crontab', 'args', 'kwargs', 'task']}
 
     name = input_data['task'] + ':' + str(datetime.datetime.utcnow())
+    oid = ObjectId()
+
+    input_data['args'][0]['schedule_id'] = str(oid)
 
     json_data = {
+        '_id': oid,
         '_cls': 'PeriodicTask',
         'enabled': True,
         'name': name,
@@ -36,9 +40,9 @@ def create_schedule(data):
 
     json_data.update(input_data)
 
-    oid = db.schedules.insert(json_data)
+    db.schedules.insert(json_data)
 
-    return oid
+    return str(oid)
 
 
 def delete_schedule(schedule_id):
