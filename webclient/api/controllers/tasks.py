@@ -6,25 +6,24 @@ from webclient.api.models.tasks import qet_task, delete_task, qet_tasks, create_
 
 class Task(Resource):
     def get(self, task_id):
+        task = None
         try:
             task = qet_task(task_id)
-
-            response = Response(json_util.dumps({'task': task}), mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'task': task}), mimetype='application/json')
+        return response
 
     def delete(self, task_id):
+        result = None
         try:
             result = delete_task(task_id)
-
-            response = Response(json_util.dumps({'task': result}),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'task': result}), mimetype='application/json')
+        return response
 
 
 class TaskList(Resource):
@@ -40,23 +39,22 @@ class TaskList(Resource):
 
         args = parser.parse_args()
 
+        task_id = None
         try:
             task_id = create_task(args)
-
-            response = Response(json_util.dumps({'task': task_id}),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'task': task_id}), mimetype='application/json')
+        return response
 
     def get(self):
+        tasks = None
         try:
             tasks = qet_tasks()
-
-            response = Response(json_util.dumps({'tasks': tasks}, default=json_util.default),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'tasks': tasks}, default=json_util.default),
+                            mimetype='application/json')
+        return response

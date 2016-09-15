@@ -6,14 +6,14 @@ from webclient.api.models.schedules import get_schedule, get_schedules, create_s
 
 class Schedule(Resource):
     def get(self, schedule_id):
+        schedule = None
         try:
             schedule = get_schedule(schedule_id)
-
-            response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
+        return response
 
 
 class ScheduleList(Resource):
@@ -27,23 +27,22 @@ class ScheduleList(Resource):
 
         args = parser.parse_args()
 
+        schedule_id = None
         try:
             schedule_id = create_schedule(args)
-
-            response = Response(json_util.dumps({'schedule': schedule_id}),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'schedule': schedule_id}), mimetype='application/json')
+        return response
 
     def get(self):
+        schedules = None
         try:
             schedules = get_schedules()
-
-            response = Response(json_util.dumps({'schedules': schedules}, default=json_util.default),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'schedules': schedules}, default=json_util.default),
+                            mimetype='application/json')
+        return response

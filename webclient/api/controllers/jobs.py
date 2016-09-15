@@ -6,25 +6,24 @@ from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job
 
 class Job(Resource):
     def get(self, job_id):
+        job = None
         try:
             job = get_job(job_id)
-
-            response = Response(json_util.dumps({'job': job}), mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'job': job}), mimetype='application/json')
+        return response
 
     def delete(self, job_id):
+        result = None
         try:
             result = delete_job(job_id)
-
-            response = Response(json_util.dumps({'job': result}),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'job': result}), mimetype='application/json')
+        return response
 
 
 class JobList(Resource):
@@ -45,23 +44,22 @@ class JobList(Resource):
 
         args = parser.parse_args()
 
+        job_id = None
         try:
             job_id = create_job(args)
-
-            response = Response(json_util.dumps({'job': job_id}),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % str(error))
 
+        response = Response(json_util.dumps({'job': job_id}),  mimetype='application/json')
+        return response
+
     def get(self):
+        jobs = None
         try:
             jobs = get_jobs()
-
-            response = Response(json_util.dumps({'jobs': jobs}, default=json_util.default),
-                                mimetype='application/json')
-
-            return response
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(json_util.dumps({'jobs': jobs}, default=json_util.default),
+                            mimetype='application/json')
+        return response
