@@ -1,24 +1,9 @@
-import datetime
+from webclient import config
 from bson import ObjectId, json_util
-from webclient.api.models import get_documents
+from webclient.api.utils.pagination import get_paged_documents
+from webclient.api.utils.celeryutil import normalize_state
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
-from webclient import config
-import dateutil.parser
-
-
-def normalize_state(task):
-    if 'start_time' in task:
-        start_time = dateutil.parser.parse(task['start_time'])
-        now_time = datetime.datetime.utcnow()
-        limit_time = start_time + datetime.timedelta(seconds=float(config['THUG_TIMELIMIT']))
-        if now_time > limit_time:
-            _, info = get_taskinfo(task['_id'])
-            task['_state'] = 'FAILURE'
-            task['error'] = str(info)
-            key = task['_id']
-            task.pop('_id', None)
-            db.tasks.update_one({'_id': ObjectId(key)}, {'$set': task})
 
 
 def qet_tasks(args):
@@ -27,20 +12,8 @@ def qet_tasks(args):
     :param args:
     :return: list of tasks
     """
-    query, links = get_documents(db.jobs, args, {'url': 1,
-                                                 '_id': 1,
-                                                 '_state': 1,
-                                                 'start_time': 1,
-                                                 'end_time': 1,
-                                                 'thug': 1,
-                                                 'geolocation': 1,
-                                                 })
-    query = list(query)
-
-    if query.count != 0:
-        for task in query:
-            if task['_state'] == 'STARTED':
-                normalize_state(task)
+    normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
+    query, links = get_paged_documents(db.tasks, args)
 
     if links is None:
         return json_util.dumps({'data': query}, default=json_util.default)
@@ -54,13 +27,11 @@ def qet_task(task_id):
     :param task_id: task id
     :return: specified task
     """
+    normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if task is None:
         return None
-
-    if task['_state'] == 'STARTED':
-        normalize_state(task)
 
     return task
 
@@ -98,13 +69,3 @@ def delete_task(task_id):
         return True
 
     return False
-
-
-def get_taskinfo(task_id):
-    """
-    Helper method returns info about task
-    :param task_id: task id
-    :return: task state and info
-    """
-    task_result = analyze_url.AsyncResult(task_id)
-    return task_result.state, task_result.info

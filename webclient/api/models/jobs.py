@@ -1,6 +1,6 @@
 from bson import ObjectId
 from crawler.tasks import execute_job
-from webclient.api.models import get_documents
+from webclient.api.utils.pagination import get_paged_documents
 from webclient.dbcontext import db
 from bson import json_util
 
@@ -11,7 +11,7 @@ def get_jobs(args):
     :param args:
     :return: list of jobs
     """
-    query, links = get_documents(db.jobs, args)
+    query, links = get_paged_documents(db.jobs, args)
 
     if links is None:
         return json_util.dumps({'data': query}, default=json_util.default)

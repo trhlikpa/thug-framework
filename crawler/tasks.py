@@ -33,11 +33,11 @@ def execute_job(self, input_data):
     db = db_client[config['MONGODB_DATABASE']]
 
     job_id = ObjectId(self.request.id)
-    schedule_id = ObjectId(input_data['schedule_id'])
     input_data['_state'] = 'STARTED'
     input_data['start_time'] = datetime.datetime.utcnow().isoformat()
 
     if 'schedule_id' in input_data:
+        schedule_id = ObjectId(input_data['schedule_id'])
         query = db.schedules.find_one({'_id': schedule_id}, {'name': 1, 'previous_runs': 1})
         count = len(query['previous_runs']) + 1
         db.schedules.update_one({'_id': schedule_id}, {'$push': {'previous_runs': str(self.request.id)}})

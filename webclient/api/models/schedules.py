@@ -1,11 +1,11 @@
-from webclient.api.models import get_documents
+from webclient.api.utils.pagination import get_paged_documents
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
 from bson import json_util
 
 
 def get_schedules(args):
-    query, links = get_documents(db.schedules, args)
+    query, links = get_paged_documents(db.schedules, args)
 
     if links is None:
         return json_util.dumps({'data': query}, default=json_util.default)
