@@ -32,15 +32,18 @@ def execute_job(self, input_data):
     db_client = MongoClient(config['MONGODB_URL'])
     db = db_client[config['MONGODB_DATABASE']]
 
-    db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': {
-        '_state': 'STARTED',
-        'start_time': datetime.datetime.utcnow()}}, upsert=True)
+    job_id = ObjectId(self.request.id)
+    schedule_id = ObjectId(input_data['schedule_id'])
+    input_data['_state'] = 'STARTED'
 
     if 'schedule_id' in input_data:
-        db.schedules.update_one({'_id': ObjectId(input_data['schedule_id'])},
-                                {'$push': {'previous_runs': str(self.request.id)}})
+        query = db.schedules.find_one({'_id': schedule_id}, {'name': 1, 'previous_runs': 1})
+        count = len(query['previous_runs']) + 1
+        db.schedules.update_one({'_id': schedule_id}, {'$push': {'previous_runs': str(self.request.id)}})
+        input_data['name'] = query['name'] + '_' + str(count)
 
-    db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': input_data})
+    db.jobs.update_one({'_id': job_id}, {'$set': input_data}, upsert=True)
+    db.jobs.update_one({'_id': job_id}, {'$set': {'end_time': datetime.datetime.utcnow()}})
 
     def _crawler_callback(link):
         """
@@ -54,12 +57,14 @@ def execute_job(self, input_data):
 
         json_data = {
             'url': link.url,
-            '_state': 'PENDING'
+            '_state': 'PENDING',
+            'start_time': None,
+            'end_time': None
         }
 
-        oid = db.tasks.insert(json_data)
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$push': {'tasks': str(oid)}})
-        analyze_url.apply_async(args=[data], task_id=str(oid))
+        task_id = db.tasks.insert(json_data)
+        db.jobs.update_one({'_id': job_id}, {'$push': {'tasks': str(task_id)}})
+        analyze_url.apply_async(args=[data], task_id=str(task_id))
 
     try:
         if input_data.get('type', '') == 'singleurl':
@@ -73,10 +78,10 @@ def execute_job(self, input_data):
             process.crawl(UrlSpider, data=input_data, callback=_crawler_callback)
             process.start(True)
 
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': {
+        db.jobs.update_one({'_id': job_id}, {'$set': {
             '_state': 'SUCCESS', 'end_time': datetime.datetime.utcnow()}})
     except Exception as error:
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': {
+        db.jobs.update_one({'_id': job_id}, {'$set': {
             '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.utcnow()}})
     finally:
         db_client.close()

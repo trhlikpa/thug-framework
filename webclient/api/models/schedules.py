@@ -23,9 +23,8 @@ def get_schedule(schedule_id):
 
 def create_schedule(data):
     input_data = {x: data[x] if x in data else '' for x in
-                  ['crontab', 'args', 'kwargs', 'task']}
+                  ['name', 'crontab', 'args', 'kwargs', 'task']}
 
-    name = input_data['task'] + ':' + str(datetime.datetime.utcnow())
     oid = ObjectId()
 
     input_data['args'][0]['schedule_id'] = str(oid)
@@ -34,7 +33,6 @@ def create_schedule(data):
         '_id': oid,
         '_cls': 'PeriodicTask',
         'enabled': True,
-        'name': name,
         'previous_runs': []
     }
 

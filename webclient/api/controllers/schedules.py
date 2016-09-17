@@ -20,6 +20,7 @@ class ScheduleList(Resource):
     def post(self):
         parser = reqparse.RequestParser()
 
+        parser.add_argument('name', type=str, help='Schdule name', required=True)
         parser.add_argument('task', type=str, help='Taskname', required=True)
         parser.add_argument('crontab', type=dict, help='Crontab', required=True)
         parser.add_argument('args', type=dict, action='append', help='args')

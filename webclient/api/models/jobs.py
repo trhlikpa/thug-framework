@@ -39,20 +39,13 @@ def create_job(data):
     """
     input_data = {x: data[x] if x in data else '' for x in
                   {'useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth',
-                   'only_internal', 'type'
+                   'only_internal', 'type', 'name'
                    }}
-
-    if data.get('crontab', None) is not None:
-        schedule_data = {
-            'task': 'crawler.tasks.execute_job',
-            'crontab': data['crontab'],
-            'args': list(input_data)
-        }
-
-        create_schedule(schedule_data)
 
     json_data = {
         '_state': 'PENDING',
+        'start_time': None,
+        'end_time': None,
         'tasks': []
     }
 

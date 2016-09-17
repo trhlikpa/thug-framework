@@ -30,6 +30,7 @@ class JobList(Resource):
     def post(self):
         parser = reqparse.RequestParser()
 
+        parser.add_argument('name', type=str, help='Name of the job', required=True)
         parser.add_argument('url', type=str, help='URL to analyze by thug', required=True)
         parser.add_argument('useragent', type=str, help='Browser personality', required=True)
         parser.add_argument('type', type=str, help='Job type (singleurl or extensive)', required=True,
@@ -40,7 +41,6 @@ class JobList(Resource):
         parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
         parser.add_argument('depth', type=str, help='Webcrawler depth')
         parser.add_argument('only_internal', type=str, help='Crawl only initial domain')
-        parser.add_argument('crontab', type=str, help='Crontab job schedule', default=None)
 
         args = parser.parse_args()
 

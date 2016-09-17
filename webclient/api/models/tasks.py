@@ -67,7 +67,9 @@ def create_task(data):
     :return: task id
     """
     json_data = {
-        '_state': 'PENDING'
+        '_state': 'PENDING',
+        'start_time': None,
+        'end_time': None
     }
 
     oid = db.tasks.insert(json_data)
@@ -75,7 +77,7 @@ def create_task(data):
     input_data = {x: data[x] if x in data else ''
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
 
-    task = analyze_url.apply_async(args=[input_data], task_id=str(oid))
+    analyze_url.apply_async(args=[input_data], task_id=str(oid))
     return str(oid)
 
 
