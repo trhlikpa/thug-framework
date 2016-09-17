@@ -1,15 +1,16 @@
-import datetime
+from webclient.api.models import get_documents
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
+from bson import json_util
 
 
-def get_schedules():
-    query = db.schedules.find()
+def get_schedules(args):
+    query, links = get_documents(db.schedules, args)
 
-    if query.count() != 0:
-        return query
-
-    return list()
+    if links is None:
+        return json_util.dumps({'data': query}, default=json_util.default)
+    else:
+        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
 
 
 def get_schedule(schedule_id):
@@ -28,6 +29,8 @@ def create_schedule(data):
     oid = ObjectId()
 
     input_data['args'][0]['schedule_id'] = str(oid)
+    input_data['args'][0]['start_time'] = None
+    input_data['args'][0]['end_time'] = None
 
     json_data = {
         '_id': oid,

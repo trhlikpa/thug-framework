@@ -1,13 +1,15 @@
 import datetime
-from bson import ObjectId
+from bson import ObjectId, json_util
+from webclient.api.models import get_documents
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
 from webclient import config
+import dateutil.parser
 
 
 def normalize_state(task):
     if 'start_time' in task:
-        start_time = task['start_time']
+        start_time = dateutil.parser.parse(task['start_time'])
         now_time = datetime.datetime.utcnow()
         limit_time = start_time + datetime.timedelta(seconds=float(config['THUG_TIMELIMIT']))
         if now_time > limit_time:
@@ -16,31 +18,34 @@ def normalize_state(task):
             task['error'] = str(info)
             key = task['_id']
             task.pop('_id', None)
-            db.tasks.update_one({'_id': ObjectId(key)},  {'$set': task})
+            db.tasks.update_one({'_id': ObjectId(key)}, {'$set': task})
 
 
-def qet_tasks():
+def qet_tasks(args):
     """
     Method queries tasks from database
+    :param args:
     :return: list of tasks
     """
-    query = list(db.tasks.find({}, {'url': 1,
-                                    '_id': 1,
-                                    '_state': 1,
-                                    'start_time': 1,
-                                    'end_time': 1,
-                                    'thug': 1,
-                                    'geolocation': 1,
-                                    }, modifiers={"$snapshot": True}))
+    query, links = get_documents(db.jobs, args, {'url': 1,
+                                                 '_id': 1,
+                                                 '_state': 1,
+                                                 'start_time': 1,
+                                                 'end_time': 1,
+                                                 'thug': 1,
+                                                 'geolocation': 1,
+                                                 })
+    query = list(query)
 
     if query.count != 0:
         for task in query:
             if task['_state'] == 'STARTED':
                 normalize_state(task)
 
-        return query
-
-    return list()
+    if links is None:
+        return json_util.dumps({'data': query}, default=json_util.default)
+    else:
+        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
 
 
 def qet_task(task_id):

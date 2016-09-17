@@ -49,12 +49,19 @@ class TaskList(Resource):
         return response
 
     def get(self):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+
+        args = parser.parse_args()
+
         tasks = None
         try:
-            tasks = qet_tasks()
+            tasks = qet_tasks(args)
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
 
-        response = Response(json_util.dumps({'tasks': tasks}, default=json_util.default),
-                            mimetype='application/json')
+        response = Response(tasks, mimetype='application/json')
         return response

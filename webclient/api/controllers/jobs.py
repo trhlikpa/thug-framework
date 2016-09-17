@@ -54,12 +54,19 @@ class JobList(Resource):
         return response
 
     def get(self):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+
+        args = parser.parse_args()
+
         jobs = None
         try:
-            jobs = get_jobs()
+            jobs = get_jobs(args)
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
 
-        response = Response(json_util.dumps({'jobs': jobs}, default=json_util.default),
-                            mimetype='application/json')
+        response = Response(jobs, mimetype='application/json')
         return response

@@ -1,20 +1,22 @@
 from bson import ObjectId
 from crawler.tasks import execute_job
+from webclient.api.models import get_documents
 from webclient.dbcontext import db
-from webclient.api.models.schedules import create_schedule
+from bson import json_util
 
 
-def get_jobs():
+def get_jobs(args):
     """
     Method queries every job from database
+    :param args:
     :return: list of jobs
     """
-    query = db.jobs.find()
+    query, links = get_documents(db.jobs, args)
 
-    if query.count() != 0:
-        return query
-
-    return list()
+    if links is None:
+        return json_util.dumps({'data': query}, default=json_util.default)
+    else:
+        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
 
 
 def get_job(job_id):

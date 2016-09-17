@@ -38,12 +38,19 @@ class ScheduleList(Resource):
         return response
 
     def get(self):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+
+        args = parser.parse_args()
+
         schedules = None
         try:
-            schedules = get_schedules()
+            schedules = get_schedules(args)
         except Exception as error:
             abort(500, message='Error while processing request: %s' % error.message)
 
-        response = Response(json_util.dumps({'schedules': schedules}, default=json_util.default),
-                            mimetype='application/json')
+        response = Response(schedules, mimetype='application/json')
         return response

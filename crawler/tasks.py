@@ -35,6 +35,7 @@ def execute_job(self, input_data):
     job_id = ObjectId(self.request.id)
     schedule_id = ObjectId(input_data['schedule_id'])
     input_data['_state'] = 'STARTED'
+    input_data['start_time'] = datetime.datetime.utcnow().isoformat()
 
     if 'schedule_id' in input_data:
         query = db.schedules.find_one({'_id': schedule_id}, {'name': 1, 'previous_runs': 1})
@@ -43,7 +44,6 @@ def execute_job(self, input_data):
         input_data['name'] = query['name'] + '_' + str(count)
 
     db.jobs.update_one({'_id': job_id}, {'$set': input_data}, upsert=True)
-    db.jobs.update_one({'_id': job_id}, {'$set': {'end_time': datetime.datetime.utcnow()}})
 
     def _crawler_callback(link):
         """
@@ -79,9 +79,9 @@ def execute_job(self, input_data):
             process.start(True)
 
         db.jobs.update_one({'_id': job_id}, {'$set': {
-            '_state': 'SUCCESS', 'end_time': datetime.datetime.utcnow()}})
+            '_state': 'SUCCESS', 'end_time': datetime.datetime.utcnow().isoformat()}})
     except Exception as error:
         db.jobs.update_one({'_id': job_id}, {'$set': {
-            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.utcnow()}})
+            '_state': 'FAILURE', 'error': error.message, 'end_time': datetime.datetime.utcnow().isoformat()}})
     finally:
         db_client.close()
