@@ -6,18 +6,18 @@ from worker.tasks import analyze_url
 
 
 def normalize_state(collection, time_limit):
-    collection.find({'_state': 'STARTED'}, {'_id': 1, 'start_time': 1, '_state': 1})
+    query = collection.find({'_state': 'STARTED'}, {'_id': 1, 'start_time': 1, '_state': 1})
 
-    for entry in collection:
+    for entry in query:
         if 'start_time' in entry:
             start_time = dateutil.parser.parse(entry['start_time'])
             now_time = datetime.datetime.utcnow()
             limit_time = start_time + datetime.timedelta(seconds=time_limit)
             if now_time > limit_time:
                 if collection.name == 'tasks':
-                    info = analyze_url.AsyncResult(entry['_id']).info
+                    info = analyze_url.AsyncResult(str(entry['_id'])).info
                 elif collection.name == 'jobs':
-                    info = execute_job.AsyncResult(entry['_id']).info
+                    info = execute_job.AsyncResult(str(entry['_id'])).info
                 else:
                     return
                 entry['_state'] = 'FAILURE'

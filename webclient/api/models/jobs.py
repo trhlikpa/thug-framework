@@ -1,5 +1,7 @@
 from bson import ObjectId
 from crawler.tasks import execute_job
+from webclient import config
+from webclient.api.utils.celeryutil import normalize_state
 from webclient.api.utils.pagination import get_paged_documents
 from webclient.dbcontext import db
 from bson import json_util
@@ -11,6 +13,7 @@ def get_jobs(args):
     :param args:
     :return: list of jobs
     """
+    normalize_state(db.jobs, float(config['CRAWLER_TIMELIMIT']))
     query, links = get_paged_documents(db.jobs, args)
 
     if links is None:
@@ -25,6 +28,7 @@ def get_job(job_id):
     :param job_id: Job id
     :return: job with job_id or None
     """
+    normalize_state(db.jobs, float(config['CRAWLER_TIMELIMIT']))
     job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
     if job is None:

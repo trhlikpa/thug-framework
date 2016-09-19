@@ -26,6 +26,9 @@ def create_schedule(data):
     input_data = {x: data[x] if x in data else '' for x in
                   ['name', 'crontab', 'args', 'kwargs', 'task']}
 
+    if 'url' not in input_data['args'] or 'type' not in input_data['args'] or 'useragent' not in input_data['args']:
+        raise ValueError('Job parameters error during schedule creation')
+
     oid = ObjectId()
 
     input_data['args'][0]['schedule_id'] = str(oid)
