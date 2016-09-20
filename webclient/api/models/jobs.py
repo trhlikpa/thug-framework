@@ -1,3 +1,4 @@
+import json
 from bson import ObjectId
 from crawler.tasks import execute_job
 from webclient import config
@@ -14,12 +15,8 @@ def get_jobs(args):
     :return: list of jobs
     """
     normalize_state(db.jobs, float(config['CRAWLER_TIMELIMIT']))
-    query, links = get_paged_documents(db.jobs, args)
-
-    if links is None:
-        return json_util.dumps({'data': query}, default=json_util.default)
-    else:
-        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
+    json_string = get_paged_documents(db.jobs, args, filter_fields=('name', 'url', '_state', 'type'))
+    return json_string
 
 
 def get_job(job_id):

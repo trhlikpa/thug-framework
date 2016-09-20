@@ -13,19 +13,16 @@ def qet_tasks(args):
     :return: list of tasks
     """
     normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
-    query, links = get_paged_documents(db.tasks, args, {'_id': 1,
-                                                        '_state': 1,
-                                                        'thug': 1,
-                                                        'url': 1,
-                                                        'error': 1,
-                                                        'start_time': 1,
-                                                        'end_time': 1
-                                                        })
+    json_string = get_paged_documents(db.tasks, args, collums={'_id': 1,
+                                                               '_state': 1,
+                                                               'thug': 1,
+                                                               'url': 1,
+                                                               'error': 1,
+                                                               'start_time': 1,
+                                                               'end_time': 1
+                                                               })
 
-    if links is None:
-        return json_util.dumps({'data': query}, default=json_util.default)
-    else:
-        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
+    return json_string
 
 
 def qet_task(task_id):

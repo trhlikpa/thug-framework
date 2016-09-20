@@ -5,12 +5,8 @@ from bson import json_util
 
 
 def get_schedules(args):
-    query, links = get_paged_documents(db.schedules, args)
-
-    if links is None:
-        return json_util.dumps({'data': query}, default=json_util.default)
-    else:
-        return json_util.dumps({'data': query, 'links': links}, default=json_util.default)
+    json_string = get_paged_documents(db.schedules, args)
+    return json_string
 
 
 def get_schedule(schedule_id):
@@ -26,7 +22,8 @@ def create_schedule(data):
     input_data = {x: data[x] if x in data else '' for x in
                   ['name', 'crontab', 'args', 'kwargs', 'task']}
 
-    if 'url' not in input_data['args'] or 'type' not in input_data['args'] or 'useragent' not in input_data['args']:
+    if 'url' not in input_data['args'][0] or 'type' not in input_data['args'][0] or 'useragent' not in \
+            input_data['args'][0]:
         raise ValueError('Job parameters error during schedule creation')
 
     oid = ObjectId()
