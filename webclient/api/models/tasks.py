@@ -1,8 +1,7 @@
 from webclient import config
-from bson import ObjectId, json_util
-
+from bson import ObjectId
 from webclient.api.models.jobs import get_job
-from webclient.api.utils.pagination import get_paged_documents
+from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.api.utils.celeryutil import normalize_state
 from webclient.dbcontext import db
 from worker.tasks import analyze_url
@@ -16,21 +15,39 @@ def qet_tasks(args, job_id=None):
     :return: list of tasks
     """
     normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
+    page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
-    id_range = None
+    filter_fields = None
+
     if job_id is not None:
         job = get_job(job_id)
         tasks_id = job['tasks']
-        id_range = {'_id': {'$in': tasks_id}}
+        filter_fields = {'_id': {'$in': tasks_id}}
 
-    json_string = get_paged_documents(db.tasks, args, id_range=id_range, collums={'_id': 1,
-                                                                                  '_state': 1,
-                                                                                  'thug': 1,
-                                                                                  'url': 1,
-                                                                                  'error': 1,
-                                                                                  'start_time': 1,
-                                                                                  'end_time': 1
-                                                                                  })
+    if filter_arg is not None:
+        tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+        if filter_fields is not None:
+            filter_fields['$or'] = tmp
+        else:
+            filter_fields = {
+                '$or': tmp
+            }
+
+    collums = {'_id': 1,
+               '_state': 1,
+               'thug': 1,
+               'url': 1,
+               'error': 1,
+               'start_time': 1,
+               'end_time': 1
+               }
+
+    json_string = get_paged_documents(db.tasks,
+                                      page=page,
+                                      pagesize=pagesize,
+                                      sort=sort,
+                                      collums=collums,
+                                      filter_fields=filter_fields)
 
     return json_string
 

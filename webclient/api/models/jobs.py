@@ -1,11 +1,9 @@
-import json
 from bson import ObjectId
 from crawler.tasks import execute_job
 from webclient import config
 from webclient.api.utils.celeryutil import normalize_state
-from webclient.api.utils.pagination import get_paged_documents
+from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.dbcontext import db
-from bson import json_util
 
 
 def get_jobs(args):
@@ -14,8 +12,25 @@ def get_jobs(args):
     :param args:
     :return: list of jobs
     """
-    normalize_state(db.jobs, float(config['CRAWLER_TIMELIMIT']))
-    json_string = get_paged_documents(db.jobs, args, filter_fields=('name', 'url', '_state', 'type'))
+    normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
+    page, pagesize, sort, filter_arg = parse_url_parameters(args)
+
+    filter_fields = None
+
+    if filter_arg is not None:
+        tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
+               {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+        filter_fields = {
+            '$or': tmp
+        }
+
+    json_string = get_paged_documents(db.jobs,
+                                      page=page,
+                                      pagesize=pagesize,
+                                      sort=sort,
+                                      collums=None,
+                                      filter_fields=filter_fields)
+
     return json_string
 
 

@@ -1,10 +1,26 @@
-from webclient.api.utils.pagination import get_paged_documents
+from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
 
 
 def get_schedules(args):
-    json_string = get_paged_documents(db.schedules, args)
+    page, pagesize, sort, filter_arg = parse_url_parameters(args)
+
+    filter_fields = None
+
+    if filter_arg is not None:
+        tmp = [{'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+        filter_fields = {
+            '$or': tmp
+        }
+
+    json_string = get_paged_documents(db.schedules,
+                                      page=page,
+                                      pagesize=pagesize,
+                                      sort=sort,
+                                      collums=None,
+                                      filter_fields=filter_fields)
+
     return json_string
 
 

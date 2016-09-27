@@ -2,6 +2,8 @@ db:
   image: mongo:latest
   environment:
     - MONGO_PWD=mypass
+  ports:
+    - "27017:27017"
 
 redis:
   image: redis:3.2.2-alpine

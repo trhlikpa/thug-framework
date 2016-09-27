@@ -44,14 +44,12 @@ def parse_url_parameters(args):
     return page, pagesize, sortargs, filter_arg
 
 
-def get_paged_documents(collection, args, id_range=None, filter_fields=None, collums=None):
-    page, pagesize, sort, filter_arg = parse_url_parameters(args)
-
-    query = collection.find(id_range is None if {} else id_range, collums is None if {} else collums) \
+def get_paged_documents(collection, page, pagesize, sort, filter_fields=None, collums=None):
+    query = collection.find(filter_fields is None if {} else filter_fields, collums is None if {} else collums) \
         .skip(pagesize * (page - 1)) \
         .limit(pagesize).sort(sort[0], int(sort[1]))
 
-    total = collection.count(id_range is None if {} else id_range)
+    total = collection.count(filter_fields is None if {} else filter_fields)
     count = query.count()
     from_t = (pagesize * (page - 1) + 1)
     to_t = (pagesize * (page - 1) + min(pagesize, count))
@@ -78,18 +76,6 @@ def get_paged_documents(collection, args, id_range=None, filter_fields=None, col
     json_string = json_util.dumps({'data': query}, default=json_util.default)
 
     d = json.loads(json_string)
-
-    if filter_arg is not None and filter_fields is not None:
-        filtered = list()
-        for entry in d['data']:
-            do_filter = False
-            for filter_field in filter_fields:
-                if filter_arg in entry.get(filter_field, ''):
-                    do_filter = True
-            if do_filter:
-                filtered.append(entry)
-        d['data'] = filtered
-
     d.update(links)
     json_string = json.dumps(d)
 
