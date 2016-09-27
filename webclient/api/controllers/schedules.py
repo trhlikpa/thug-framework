@@ -10,6 +10,7 @@ class Schedule(Resource):
         try:
             schedule = get_schedule(schedule_id)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
@@ -32,6 +33,7 @@ class ScheduleList(Resource):
         try:
             schedule_id = create_schedule(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'schedule': schedule_id}), mimetype='application/json')
@@ -51,6 +53,7 @@ class ScheduleList(Resource):
         try:
             schedules = get_schedules(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(schedules, mimetype='application/json')

@@ -44,13 +44,14 @@ def parse_url_parameters(args):
     return page, pagesize, sortargs, filter_arg
 
 
-def get_paged_documents(collection, args, filter_fields=None, collums=None):
+def get_paged_documents(collection, args, id_range=None, filter_fields=None, collums=None):
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
-    query = collection.find({}, collums is None if {} else collums).skip(pagesize * (page - 1)) \
+    query = collection.find(id_range is None if {} else id_range, collums is None if {} else collums) \
+        .skip(pagesize * (page - 1)) \
         .limit(pagesize).sort(sort[0], int(sort[1]))
 
-    total = collection.count()
+    total = collection.count(id_range is None if {} else id_range)
     count = query.count()
     from_t = (pagesize * (page - 1) + 1)
     to_t = (pagesize * (page - 1) + min(pagesize, count))
@@ -66,7 +67,7 @@ def get_paged_documents(collection, args, filter_fields=None, collums=None):
             to_t = total
 
     links = {
-        'total': collection.count(),
+        'total': total,
         'per_page': pagesize,
         'current_page': page,
         'last_page': last,

@@ -27,7 +27,7 @@ COPY ./config.json /opt/project/config.json
 
 # IMPORT THUG WEB BROWSER PERSONALITIES
 RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
-    cp /tmp/thug/src/DOM/personalities/* /opt/project/crawler/personalities/
+    cp /tmp/thug/thug/DOM/personalities/* /opt/project/crawler/personalities/
 
 # INSTALL PYTHON DEPENDENCIES
 RUN cd /opt/project/crawler && \

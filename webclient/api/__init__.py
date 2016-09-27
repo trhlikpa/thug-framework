@@ -7,9 +7,11 @@ api = Api(api_blueprint)
 
 api.add_resource(tasks.TaskList, '/tasks/')
 api.add_resource(tasks.Task, '/tasks/<task_id>')
+api.add_resource(tasks.TasksByJob, '/jobs/<job_id>/tasks/')
 
 api.add_resource(jobs.JobList, '/jobs/')
 api.add_resource(jobs.Job, '/jobs/<job_id>')
+
 
 api.add_resource(schedules.ScheduleList, '/schedules/')
 api.add_resource(schedules.Schedule, '/schedules/<schedule_id>')

@@ -49,6 +49,7 @@ def create_job(data):
         '_state': 'PENDING',
         'start_time': None,
         'end_time': None,
+        'schedule_id': None,
         'tasks': []
     }
 

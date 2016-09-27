@@ -10,6 +10,7 @@ class Task(Resource):
         try:
             task = qet_task(task_id)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'task': task}), mimetype='application/json')
@@ -20,6 +21,7 @@ class Task(Resource):
         try:
             result = delete_task(task_id)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'task': result}), mimetype='application/json')
@@ -43,6 +45,7 @@ class TaskList(Resource):
         try:
             task_id = create_task(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'task': task_id}), mimetype='application/json')
@@ -62,6 +65,29 @@ class TaskList(Resource):
         try:
             tasks = qet_tasks(args)
         except Exception as error:
+            raise error
+            abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(tasks, mimetype='application/json')
+        return response
+
+
+class TasksByJob(Resource):
+    def get(self, job_id):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+        parser.add_argument('filter', type=str, location='args')
+
+        args = parser.parse_args()
+
+        tasks = None
+        try:
+            tasks = qet_tasks(args, job_id)
+        except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(tasks, mimetype='application/json')

@@ -10,6 +10,7 @@ class Job(Resource):
         try:
             job = get_job(job_id)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'job': job}), mimetype='application/json')
@@ -20,6 +21,7 @@ class Job(Resource):
         try:
             result = delete_job(job_id)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(json_util.dumps({'job': result}), mimetype='application/json')
@@ -48,6 +50,7 @@ class JobList(Resource):
         try:
             job_id = create_job(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'job': job_id}),  mimetype='application/json')
@@ -67,6 +70,7 @@ class JobList(Resource):
         try:
             jobs = get_jobs(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % error.message)
 
         response = Response(jobs, mimetype='application/json')

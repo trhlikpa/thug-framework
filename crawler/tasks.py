@@ -36,11 +36,11 @@ def execute_job(self, input_data):
     input_data['_state'] = 'STARTED'
     input_data['start_time'] = datetime.datetime.utcnow().isoformat()
 
-    if 'schedule_id' in input_data:
+    if input_data.get('schedule_id') is not None:
         schedule_id = ObjectId(input_data['schedule_id'])
         query = db.schedules.find_one({'_id': schedule_id}, {'name': 1, 'previous_runs': 1})
         count = len(query['previous_runs']) + 1
-        db.schedules.update_one({'_id': schedule_id}, {'$push': {'previous_runs': str(self.request.id)}})
+        db.schedules.update_one({'_id': schedule_id}, {'$push': {'previous_runs': ObjectId(self.request.id)}})
         input_data['name'] = query['name'] + '_' + str(count)
 
     db.jobs.update_one({'_id': job_id}, {'$set': input_data}, upsert=True)
@@ -59,11 +59,12 @@ def execute_job(self, input_data):
             'url': link.url,
             '_state': 'PENDING',
             'start_time': None,
-            'end_time': None
+            'end_time': None,
+            'job_id': str(job_id)
         }
 
         task_id = db.tasks.insert(json_data)
-        db.jobs.update_one({'_id': job_id}, {'$push': {'tasks': str(task_id)}})
+        db.jobs.update_one({'_id': job_id}, {'$push': {'tasks': task_id}})
         analyze_url.apply_async(args=[data], task_id=str(task_id))
 
     try:

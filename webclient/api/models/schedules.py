@@ -1,7 +1,6 @@
 from webclient.api.utils.pagination import get_paged_documents
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
-from bson import json_util
 
 
 def get_schedules(args):
@@ -32,6 +31,18 @@ def create_schedule(data):
     input_data['args'][0]['start_time'] = None
     input_data['args'][0]['end_time'] = None
 
+    if 'java' not in input_data['args'][0]:
+        input_data['args'][0]['java'] = None
+
+    if 'shockwave' not in input_data['args'][0]:
+        input_data['args'][0]['shockwave'] = None
+
+    if 'adobepdf' not in input_data['args'][0]:
+        input_data['args'][0]['adobepdf'] = None
+
+    if 'proxy' not in input_data['args'][0]:
+        input_data['args'][0]['proxy'] = None
+
     json_data = {
         '_id': oid,
         '_cls': 'PeriodicTask',
@@ -47,12 +58,17 @@ def create_schedule(data):
 
 
 def delete_schedule(schedule_id):
-    pass
+    result_db = db.schedules.delete_one({'_id': ObjectId(schedule_id)})
 
+    if result_db.deleted_count > 0:
+        return True
 
-def update_schedule(schedule_id, **params):
-    pass
+    return False
 
 
 def pause_schedule(schedule_id):
+    db.schedules.update_one({'_id': schedule_id}, {'$set': {'enabled': False}})
+
+
+def update_schedule(schedule_id, **params):
     pass
