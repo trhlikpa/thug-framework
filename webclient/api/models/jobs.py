@@ -33,7 +33,7 @@ def classify_job(job):
     for task in tasks:
         if task['_state'] == 'FAILURE':
             if classification != 'INFECTED':
-                classification = 'POSSIBLY INFECTED'
+                classification = 'SUSPICIOUS'
         elif 'exploits' in task and len(task.get('exploits')) > 0:
             classification = 'INFECTED'
 
