@@ -1,3 +1,4 @@
+import json
 from webclient import config
 from bson import ObjectId
 from webclient.api.models.jobs import get_job
@@ -7,7 +8,7 @@ from webclient.dbcontext import db
 from worker.tasks import analyze_url
 
 
-def qet_tasks(args, job_id=None):
+def get_tasks(args, job_id=None):
     """
     Method queries tasks from database
     :param job_id:
@@ -39,27 +40,30 @@ def qet_tasks(args, job_id=None):
                'url': 1,
                'error': 1,
                'start_time': 1,
-               'end_time': 1
+               'end_time': 1,
+               'exploits': 1
                }
 
-    json_string = get_paged_documents(db.tasks,
-                                      page=page,
-                                      pagesize=pagesize,
-                                      sort=sort,
-                                      collums=collums,
-                                      filter_fields=filter_fields)
+    d = get_paged_documents(db.tasks,
+                            page=page,
+                            pagesize=pagesize,
+                            sort=sort,
+                            collums=collums,
+                            filter_fields=filter_fields)
 
+    json_string = json.dumps(d)
     return json_string
 
 
-def qet_task(task_id):
+def get_task(task_id, collums=None):
     """
     Method queries specified task from database
+    :param collums:
     :param task_id: task id
     :return: specified task
     """
     normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
-    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+    task = db.tasks.find_one({'_id': ObjectId(task_id)}, collums is None if {} else collums)
 
     if task is None:
         return None

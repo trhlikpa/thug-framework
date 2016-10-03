@@ -1,14 +1,55 @@
+import json
 from bson import ObjectId
 from crawler.tasks import execute_job
 from webclient import config
+from webclient.api.models.schedules import get_schedule
 from webclient.api.utils.celeryutil import normalize_state
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.dbcontext import db
 
 
-def get_jobs(args):
+def classify_job(job):
+    from webclient.api.models.tasks import get_task
+    collums = {'_id': 1,
+               '_state': 1,
+               'error': 1,
+               'exploits': 1
+               }
+
+    tasks = list()
+    for task_id in job['tasks']:
+        if type(task_id) is ObjectId:
+            task_id = str(task_id)
+        else:
+            task_id = task_id['$oid']
+        task = get_task(task_id, collums)
+        if task['_state'] != 'SUCCESS' and task['_state'] != 'FAILURE':
+            return
+
+        tasks.append(task)
+
+    classification = 'CLEAR'
+
+    for task in tasks:
+        if task['_state'] == 'FAILURE':
+            if classification != 'INFECTED':
+                classification = 'POSSIBLY INFECTED'
+        elif 'exploits' in task and len(task.get('exploits')) > 0:
+            classification = 'INFECTED'
+
+    if type(job['_id']) is not ObjectId:
+        job['_id'] = job['_id']['$oid']
+    else:
+        job['_id'] = str(job['_id'])
+
+    db.jobs.update_one({'_id': ObjectId(job['_id'])}, {'$set': {'classification': classification}})
+    job['classification'] = classification
+
+
+def get_jobs(args, shedule_id=None):
     """
     Method queries every job from database
+    :param shedule_id:
     :param args:
     :return: list of jobs
     """
@@ -17,20 +58,33 @@ def get_jobs(args):
 
     filter_fields = None
 
+    if shedule_id is not None:
+        schedule = get_schedule(shedule_id)
+        jobs_id = schedule['previous_runs']
+        filter_fields = {'_id': {'$in': jobs_id}}
+
     if filter_arg is not None:
         tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
                {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
-        filter_fields = {
-            '$or': tmp
-        }
+        if filter_fields is not None:
+            filter_fields['$or'] = tmp
+        else:
+            filter_fields = {
+                '$or': tmp
+            }
 
-    json_string = get_paged_documents(db.jobs,
-                                      page=page,
-                                      pagesize=pagesize,
-                                      sort=sort,
-                                      collums=None,
-                                      filter_fields=filter_fields)
+    d = get_paged_documents(db.jobs,
+                            page=page,
+                            pagesize=pagesize,
+                            sort=sort,
+                            collums=None,
+                            filter_fields=filter_fields)
 
+    for entry in d['data']:
+        if entry['_state'] == 'SUCCESS' and not entry.get('classification'):
+            classify_job(entry)
+
+    json_string = json.dumps(d)
     return json_string
 
 
@@ -45,6 +99,9 @@ def get_job(job_id):
 
     if job is None:
         return None
+
+    if job['_state'] == 'SUCCESS' and not job.get('classification'):
+        classify_job(job)
 
     return job
 
@@ -62,6 +119,7 @@ def create_job(data):
 
     json_data = {
         '_state': 'PENDING',
+        'classification': None,
         'start_time': None,
         'end_time': None,
         'schedule_id': None,

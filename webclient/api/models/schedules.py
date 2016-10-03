@@ -1,3 +1,4 @@
+import json
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
@@ -14,13 +15,14 @@ def get_schedules(args):
             '$or': tmp
         }
 
-    json_string = get_paged_documents(db.schedules,
-                                      page=page,
-                                      pagesize=pagesize,
-                                      sort=sort,
-                                      collums=None,
-                                      filter_fields=filter_fields)
+    d = get_paged_documents(db.schedules,
+                            page=page,
+                            pagesize=pagesize,
+                            sort=sort,
+                            collums=None,
+                            filter_fields=filter_fields)
 
+    json_string = json.dumps(d)
     return json_string
 
 
@@ -46,6 +48,7 @@ def create_schedule(data):
     input_data['args'][0]['schedule_id'] = str(oid)
     input_data['args'][0]['start_time'] = None
     input_data['args'][0]['end_time'] = None
+    input_data['args'][0]['classification'] = None
 
     if 'java' not in input_data['args'][0]:
         input_data['args'][0]['java'] = None

@@ -1,7 +1,6 @@
 import re
 import math
 import json
-
 from bson import json_util
 
 
@@ -77,6 +76,5 @@ def get_paged_documents(collection, page, pagesize, sort, filter_fields=None, co
 
     d = json.loads(json_string)
     d.update(links)
-    json_string = json.dumps(d)
 
-    return json_string
+    return d

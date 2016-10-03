@@ -11,7 +11,7 @@ api.add_resource(tasks.TasksByJob, '/jobs/<job_id>/tasks/')
 
 api.add_resource(jobs.JobList, '/jobs/')
 api.add_resource(jobs.Job, '/jobs/<job_id>')
-
+api.add_resource(jobs.JobsBySchedule, '/schedules/<schedule_id>/jobs/')
 
 api.add_resource(schedules.ScheduleList, '/schedules/')
 api.add_resource(schedules.Schedule, '/schedules/<schedule_id>')

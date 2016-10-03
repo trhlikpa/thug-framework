@@ -53,7 +53,7 @@ class JobList(Resource):
             raise error
             abort(500, message='Error while processing request: %s' % str(error))
 
-        response = Response(json_util.dumps({'job': job_id}),  mimetype='application/json')
+        response = Response(json_util.dumps({'job': job_id}), mimetype='application/json')
         return response
 
     def get(self):
@@ -69,6 +69,28 @@ class JobList(Resource):
         jobs = None
         try:
             jobs = get_jobs(args)
+        except Exception as error:
+            raise error
+            abort(500, message='Error while processing request: %s' % error.message)
+
+        response = Response(jobs, mimetype='application/json')
+        return response
+
+
+class JobsBySchedule(Resource):
+    def get(self, schedule_id):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+        parser.add_argument('filter', type=str, location='args')
+
+        args = parser.parse_args()
+
+        jobs = None
+        try:
+            jobs = get_jobs(args, schedule_id)
         except Exception as error:
             raise error
             abort(500, message='Error while processing request: %s' % error.message)

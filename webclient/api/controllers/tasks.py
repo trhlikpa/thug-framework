@@ -1,14 +1,14 @@
 from bson import json_util
 from flask_restful import Resource, abort, reqparse
 from flask import Response
-from webclient.api.models.tasks import qet_task, delete_task, qet_tasks, create_task
+from webclient.api.models.tasks import get_task, delete_task, get_tasks, create_task
 
 
 class Task(Resource):
     def get(self, task_id):
         task = None
         try:
-            task = qet_task(task_id)
+            task = get_task(task_id)
         except Exception as error:
             raise error
             abort(500, message='Error while processing request: %s' % error.message)
@@ -63,7 +63,7 @@ class TaskList(Resource):
 
         tasks = None
         try:
-            tasks = qet_tasks(args)
+            tasks = get_tasks(args)
         except Exception as error:
             raise error
             abort(500, message='Error while processing request: %s' % error.message)
@@ -85,7 +85,7 @@ class TasksByJob(Resource):
 
         tasks = None
         try:
-            tasks = qet_tasks(args, job_id)
+            tasks = get_tasks(args, job_id)
         except Exception as error:
             raise error
             abort(500, message='Error while processing request: %s' % error.message)
