@@ -38,11 +38,11 @@ def classify_job(job):
             classification = 'INFECTED'
 
     if type(job['_id']) is not ObjectId:
-        job['_id'] = job['_id']['$oid']
+        tmp = job['_id']['$oid']
     else:
-        job['_id'] = str(job['_id'])
+        tmp = str(job['_id'])
 
-    db.jobs.update_one({'_id': ObjectId(job['_id'])}, {'$set': {'classification': classification}})
+    db.jobs.update_one({'_id': ObjectId(tmp)}, {'$set': {'classification': classification}})
     job['classification'] = classification
 
 
