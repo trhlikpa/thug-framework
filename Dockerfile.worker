@@ -1,17 +1,23 @@
-# image for worker
+# WORKER IMAGE
 FROM honeynet/thug:latest
 
+# INSTALL THUG
 RUN cd /opt/thug/src && \
     python setup.py install
 
+# CREATE FOLDER STRUCTURE
 COPY ./worker/entrypoint.sh /
 COPY ./worker /opt/project/worker/
-COPY ./config.json /opt/project/config.json
 
+# CREATE USER, ENV_PATHS
 RUN chmod +x /entrypoint.sh
 ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/worker/
+RUN adduser --disabled-password --gecos '' user
 
+# INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
 
-RUN adduser --disabled-password --gecos '' user
+# COPY CONFIG
+COPY ./config.json /opt/project/config.json
+
