@@ -1,9 +1,43 @@
 # WORKER IMAGE
-FROM honeynet/thug:latest
+FROM ubuntu:14.04
 
-# INSTALL THUG
-RUN cd /opt/thug/src && \
-    python setup.py install
+USER root
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+    build-essential \
+    python-dev \
+    python-setuptools \
+    libboost-python-dev \
+    libboost-all-dev \
+    python-pip \
+    libxml2-dev \
+    libxslt-dev \
+    git \
+    libtool \
+    graphviz-dev \
+    automake \
+    libffi-dev \
+    graphviz \
+    libfuzzy-dev \
+	libjpeg8-dev \
+    autoconf && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN easy_install -U setuptools pygraphviz
+
+WORKDIR /home
+
+RUN git clone https://github.com/buffer/pyv8.git && \
+  cd pyv8 && \
+  python setup.py build && \
+  python setup.py install && \
+  cd .. && \
+  rm -rf pyv8
+
+RUN pip install thug
+
+RUN echo "/opt/libemu/lib/" > /etc/ld.so.conf.d/libemu.conf && ldconfig
+
 
 # CREATE FOLDER STRUCTURE
 COPY ./worker/entrypoint.sh /

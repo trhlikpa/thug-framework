@@ -2,8 +2,7 @@ import hashlib
 import logging
 import os
 from datetime import datetime
-from Plugins.ThugPlugins import *
-from ThugAPI import *
+from thug.ThugAPI import ThugAPI
 
 __log__ = logging.getLogger('Thug')
 __log__.setLevel(logging.WARN)
@@ -24,7 +23,7 @@ class Thug(ThugAPI):
             raise ValueError('URL not found')
 
         self._cfg = cfg
-        ThugAPI.__init__(self, None, __cfgpath__)
+        ThugAPI.__init__(self)
 
     def analyze(self):
         """
@@ -66,9 +65,7 @@ class Thug(ThugAPI):
         log_path = os.path.join(__logpath__, url_md5, time)
 
         self.set_log_dir(log_path)
-        ThugPlugins(PRE_ANALYSIS_PLUGINS, self)()
         self.run_remote(self._cfg['url'])
-        ThugPlugins(POST_ANALYSIS_PLUGINS, self)()
 
         self.log_event()
         return log_path
