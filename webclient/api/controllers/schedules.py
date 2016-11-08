@@ -2,23 +2,26 @@ from bson import json_util
 from flask_restful import Resource, abort, reqparse
 from flask import Response
 from webclient.api.models.schedules import get_schedule, get_schedules, create_schedule
+from webclient.api.utils.decorators import login_required
 
 
 class Schedule(Resource):
-    def get(self, schedule_id):
+    @classmethod
+    def get(cls, schedule_id):
         schedule = None
         try:
             schedule = get_schedule(schedule_id)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
         return response
 
 
 class ScheduleList(Resource):
-    def post(self):
+    @classmethod
+    @login_required
+    def post(cls):
         parser = reqparse.RequestParser()
 
         parser.add_argument('name', type=str, help='Schdule name', required=True)
@@ -33,13 +36,13 @@ class ScheduleList(Resource):
         try:
             schedule_id = create_schedule(args)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'schedule': schedule_id}), mimetype='application/json')
         return response
 
-    def get(self):
+    @classmethod
+    def get(cls):
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')
@@ -53,8 +56,7 @@ class ScheduleList(Resource):
         try:
             schedules = get_schedules(args)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(schedules, mimetype='application/json')
         return response

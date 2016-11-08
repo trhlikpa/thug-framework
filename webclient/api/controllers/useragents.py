@@ -4,7 +4,8 @@ from webclient.api.models.useragents import get_useragents
 
 
 class UserAgentList(Resource):
-    def get(self):
+    @classmethod
+    def get(cls):
         agents = get_useragents()
         response = Response(agents, mimetype='application/json')
         return response

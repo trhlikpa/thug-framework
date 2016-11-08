@@ -2,34 +2,38 @@ from bson import json_util
 from flask_restful import Resource, abort, reqparse
 from flask import Response
 from webclient.api.models.tasks import get_task, delete_task, get_tasks, create_task
+from webclient.api.utils.decorators import login_required
 
 
 class Task(Resource):
-    def get(self, task_id):
+    @classmethod
+    def get(cls, task_id):
         task = None
         try:
             task = get_task(task_id)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'task': task}), mimetype='application/json')
         return response
 
-    def delete(self, task_id):
+    @classmethod
+    @login_required
+    def delete(cls, task_id):
         result = None
         try:
             result = delete_task(task_id)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'task': result}), mimetype='application/json')
         return response
 
 
 class TaskList(Resource):
-    def post(self):
+    @classmethod
+    @login_required
+    def post(cls):
         parser = reqparse.RequestParser()
 
         parser.add_argument('url', type=str, help='URL to analyze by thug', required=True)
@@ -45,13 +49,13 @@ class TaskList(Resource):
         try:
             task_id = create_task(args)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'task': task_id}), mimetype='application/json')
         return response
 
-    def get(self):
+    @classmethod
+    def get(cls):
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')
@@ -65,15 +69,15 @@ class TaskList(Resource):
         try:
             tasks = get_tasks(args)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(tasks, mimetype='application/json')
         return response
 
 
 class TasksByJob(Resource):
-    def get(self, job_id):
+    @classmethod
+    def get(cls, job_id):
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')
@@ -87,8 +91,7 @@ class TasksByJob(Resource):
         try:
             tasks = get_tasks(args, job_id)
         except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % error.message)
+            abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(tasks, mimetype='application/json')
         return response

@@ -6,8 +6,13 @@ RUN apk update && \
 	apk upgrade && \
 	apk add git && \
 	apk add python && \
+	apk add python-dev && \
 	apk add py-pip && \
-	apk add bash
+	apk add musl-dev && \
+	apk add libffi-dev && \
+	apk add openssl-dev && \
+	apk add bash && \
+	apk add gcc
 
 # CREATE FOLDER STRUCTURE
 COPY ./webclient/entrypoint.sh /
@@ -33,6 +38,6 @@ RUN chmod +x /entrypoint.sh
 COPY ./config.json /opt/project/config.json
 
 # CLEAN UP
-RUN apk del py-pip git
+RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev
 RUN rm -rf /var/cache/apk/*
 RUN rm -rf /tmp/thug/*

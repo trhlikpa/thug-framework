@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api
-from webclient.api.controllers import tasks, jobs, schedules, useragents
+from webclient.api.controllers import tasks, jobs, schedules, useragents, auth
 
 api_blueprint = Blueprint('api', __name__, url_prefix='/api/v1.0')
 api = Api(api_blueprint)
@@ -17,3 +17,6 @@ api.add_resource(schedules.ScheduleList, '/schedules/')
 api.add_resource(schedules.Schedule, '/schedules/<schedule_id>')
 
 api.add_resource(useragents.UserAgentList, '/useragents/')
+
+api.add_resource(auth.Login, '/auth/login')
+api.add_resource(auth.Register, '/auth/register')

@@ -65,9 +65,6 @@ def get_task(task_id, collums=None):
     normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
     task = db.tasks.find_one({'_id': ObjectId(task_id)}, collums is None if {} else collums)
 
-    if task is None:
-        return None
-
     return task
 
 

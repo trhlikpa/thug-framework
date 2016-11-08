@@ -29,9 +29,6 @@ def get_schedules(args):
 def get_schedule(schedule_id):
     schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
 
-    if schedule is None:
-        return None
-
     return schedule
 
 
@@ -87,7 +84,3 @@ def delete_schedule(schedule_id):
 
 def pause_schedule(schedule_id):
     db.schedules.update_one({'_id': schedule_id}, {'$set': {'enabled': False}})
-
-
-def update_schedule(schedule_id, **params):
-    pass

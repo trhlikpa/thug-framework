@@ -3,3 +3,5 @@ flask
 redis
 pymongo==3.2.2
 flask_restful
+bcrypt
+PyJWT

@@ -148,22 +148,3 @@ def delete_job(job_id):
         return True
 
     return False
-
-
-def update_job(job_id, **params):
-    """
-    Method updates job
-    TODO
-    :param job_id: job id
-    :param params: new parameters
-    """
-    pass
-
-
-def pause_job(job_id):
-    """
-    Method pauses job
-    TODO
-    :param job_id: job id
-    """
-    pass

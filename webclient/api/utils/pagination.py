@@ -44,9 +44,15 @@ def parse_url_parameters(args):
 
 
 def get_paged_documents(collection, page, pagesize, sort, filter_fields=None, collums=None):
-    query = collection.find(filter_fields is None if {} else filter_fields, collums is None if {} else collums) \
-        .skip(pagesize * (page - 1)) \
-        .limit(pagesize).sort(sort[0], int(sort[1]))
+
+    if pagesize < 0:
+        query = collection.find({}, collums is None if {} else collums)
+    else:
+        query = collection.find(filter_fields is None if {} else filter_fields, collums is None if {} else collums) \
+            .skip(pagesize * (page - 1)) \
+            .limit(pagesize).sort(sort[0], int(sort[1]))
+
+    pagesize = abs(pagesize)
 
     total = collection.count(filter_fields is None if {} else filter_fields)
     count = query.count()
