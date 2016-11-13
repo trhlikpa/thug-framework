@@ -1,50 +1,42 @@
-db:
-  image: mongo:latest
-  environment:
-    - MONGO_PWD=mypass
-  ports:
-    - "27017:27017"
+version: '2'
 
-redis:
-  image: redis:3.2.2-alpine
-  environment:
-    - REDIS_PWD=mypass
+services:
+  db:
+    image: mongo:latest
 
-web:
-  build: .
-  dockerfile: Dockerfile.web
-  entrypoint: ["/entrypoint.sh"]
-  command: ["python", "app.py"]
-  ports:
-    - "5000:5000"
-  links:
-    - db:db
-    - redis:redis
+  redis:
+    image: redis:3.2.2-alpine
 
-worker:
-  build: .
-  dockerfile: Dockerfile.worker
-  entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "--autoreload", "-l", "DEBUG", "-A", "worker.tasks", "-Q", "thugtask"]
-  links:
-    - db:db
-    - redis:redis
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    entrypoint: ["/entrypoint.sh"]
+    command: ["uwsgi", "--http", "0.0.0.0:5000", "--uid", "web", "--master", "--module", "app:app", "--processes", "1", "--threads", "8"]
+    ports:
+      - "5000:5000"
 
-crawler:
-  build: .
-  dockerfile: Dockerfile.crawler
-  entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "worker", "--autoreload", "-l", "DEBUG", "-A", "crawler.tasks", "-Q", "crawlertask"]
-  links:
-    - db:db
-    - redis:redis
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    entrypoint: ["/entrypoint.sh"]
+    command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "worker.tasks", "-Q", "thugtask"]
 
-scheduler:
-  build: .
-  dockerfile: Dockerfile.scheduler
-  entrypoint: ["/entrypoint.sh"]
-  command: ["celery", "-l", "DEBUG", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
-  links:
-    - db:db
-    - redis:redis
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawler
+    entrypoint: ["/entrypoint.sh"]
+    command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "crawler.tasks", "-Q", "crawlertask"]
+
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    entrypoint: ["/entrypoint.sh"]
+    command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
+
+
 

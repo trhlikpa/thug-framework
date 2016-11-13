@@ -34,7 +34,7 @@ def get_schedule(schedule_id):
 
 def create_schedule(data):
     input_data = {x: data[x] if x in data else '' for x in
-                  ['name', 'crontab', 'args', 'kwargs', 'task']}
+                  ['name', 'crontab', 'args', 'kwargs', 'task', 'submitter']}
 
     if 'url' not in input_data['args'][0] or 'type' not in input_data['args'][0] or 'useragent' not in \
             input_data['args'][0]:
@@ -46,6 +46,7 @@ def create_schedule(data):
     input_data['args'][0]['start_time'] = None
     input_data['args'][0]['end_time'] = None
     input_data['args'][0]['classification'] = None
+    input_data['args'][0]['submitter'] = input_data['submitter']
 
     if 'java' not in input_data['args'][0]:
         input_data['args'][0]['java'] = None

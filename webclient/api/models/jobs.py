@@ -114,7 +114,7 @@ def create_job(data):
     """
     input_data = {x: data[x] if x in data else '' for x in
                   {'useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy', 'depth',
-                   'only_internal', 'type', 'name'
+                   'only_internal', 'type', 'name', 'submitter'
                    }}
 
     json_data = {

@@ -11,6 +11,10 @@ RUN apk update && \
 	apk add musl-dev && \
 	apk add libffi-dev && \
 	apk add openssl-dev && \
+	apk add python3-dev && \
+	apk add build-base && \
+	apk add linux-headers && \
+	apk add pcre-dev && \
 	apk add bash && \
 	apk add gcc
 
@@ -24,6 +28,9 @@ COPY ./crawler /opt/project/crawler/
 RUN cd /opt/project/webclient && \
     pip install -r requirements.txt
 
+# INSTALL PYTHON WEB SERVER
+RUN pip install https://github.com/unbit/uwsgi/archive/uwsgi-2.0.zip#egg=uwsgi
+
 # IMPORT THUG WEB BROWSER PERSONALITIES
 RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
     cp /tmp/thug/thug/DOM/personalities/* /opt/project/webclient/api/models/personalities
@@ -31,13 +38,18 @@ RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
 # CREATE USER, ENV_PATHS
 ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/webclient/
-RUN adduser -D -g '' user
+RUN addgroup -S web && adduser -S -G web web
 RUN chmod +x /entrypoint.sh
 
 # COPY CONFIG
 COPY ./config.json /opt/project/config.json
 
+# IMPORT FRONTEND
+RUN git clone https://github.com/trhlikpa/thug-frontend.git /tmp/frontend && \
+    cp -r /tmp/frontend/dist/* /opt/project/webclient/frontend
+
 # CLEAN UP
-RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev
+RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev python3-dev build-base
 RUN rm -rf /var/cache/apk/*
 RUN rm -rf /tmp/thug/*
+RUN rm -rf /tmp/frontend/*

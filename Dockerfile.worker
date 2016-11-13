@@ -2,6 +2,7 @@
 FROM ubuntu:14.04
 
 USER root
+
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
     build-essential \
@@ -14,16 +15,18 @@ RUN apt-get update && \
     libxslt-dev \
     git \
     libtool \
-    graphviz-dev \
     automake \
     libffi-dev \
+    graphviz-dev \
     graphviz \
+    libgraphviz-dev \
+    pkg-config \
     libfuzzy-dev \
 	libjpeg8-dev \
     autoconf && \
   rm -rf /var/lib/apt/lists/*
 
-RUN easy_install -U setuptools pygraphviz
+RUN easy_install -U setuptools pip pygraphviz
 
 WORKDIR /home
 
@@ -52,6 +55,14 @@ RUN adduser --disabled-password --gecos '' user
 # INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
 
+RUN git clone https://github.com/pygraphviz/pygraphviz.git && \
+    cd pygraphviz && \
+    python setup.py install
+
 # COPY CONFIG
 COPY ./config.json /opt/project/config.json
+
+USER user
+
+
 

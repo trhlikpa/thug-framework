@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, render_template
 from webclient import config
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='./frontend/static', template_folder='./frontend')
 app.config.update(config)
 
 # Import blueprints
@@ -10,6 +10,17 @@ from webclient.api import api_blueprint
 # Register blueprints
 app.register_blueprint(api_blueprint)
 
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+
+@app.route('/<path:path>', methods=['GET'])
+def any_path(path):
+    return render_template('index.html')
+
+
 # Run server
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run()

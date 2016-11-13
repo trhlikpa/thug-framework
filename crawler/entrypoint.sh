@@ -2,7 +2,7 @@
 set -e
 
 if [ "$1" = 'celery' ]; then
-	chown -R user .
+	chown -R crawler .
 	exec celery "${@:2}"
 fi
 

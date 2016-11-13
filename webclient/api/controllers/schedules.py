@@ -29,6 +29,7 @@ class ScheduleList(Resource):
         parser.add_argument('crontab', type=dict, help='Crontab', required=True)
         parser.add_argument('args', type=dict, action='append', help='args')
         parser.add_argument('kwargs', help='kwargs')
+        parser.add_argument('submitter', type=str, help='Submitter')
 
         args = parser.parse_args()
 

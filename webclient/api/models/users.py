@@ -6,6 +6,7 @@ from bson import ObjectId
 from flask import current_app
 from webclient.dbcontext import db
 from jwt.exceptions import InvalidTokenError
+from validate_email import validate_email
 
 
 def validate_user(email, password):
@@ -27,6 +28,18 @@ def validate_user(email, password):
 
 
 def create_user(name, email, password, password_confirm):
+    if not validate_email(email):
+        raise AssertionError('Email address is not valid')
+
+    if len(password) < 8:
+        raise AssertionError('Password must be at least 8 characters')
+
+    if not any(char.isdigit() for char in password):
+        raise AssertionError('Password must contain at least one digit')
+
+    if not any(char.isalpha() for char in password):
+        raise AssertionError('Password must contain at least one letter')
+
     if password != password_confirm:
         raise AssertionError('Password and password confirmation are not the same')
 

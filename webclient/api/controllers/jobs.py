@@ -47,6 +47,7 @@ class JobList(Resource):
         parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
         parser.add_argument('depth', type=str, help='Webcrawler depth')
         parser.add_argument('only_internal', type=str, help='Crawl only initial domain')
+        parser.add_argument('submitter', type=str, help='Submitter')
 
         args = parser.parse_args()
 
