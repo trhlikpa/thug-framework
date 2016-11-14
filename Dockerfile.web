@@ -8,6 +8,7 @@ RUN apk update && \
 	apk add python && \
 	apk add python-dev && \
 	apk add py-pip && \
+	apk add py-setuptools && \
 	apk add musl-dev && \
 	apk add libffi-dev && \
 	apk add openssl-dev && \
@@ -49,7 +50,7 @@ RUN git clone https://github.com/trhlikpa/thug-frontend.git /tmp/frontend && \
     cp -r /tmp/frontend/dist/* /opt/project/webclient/frontend
 
 # CLEAN UP
-RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev python3-dev build-base
+RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev python3-dev build-base py-setuptools
 RUN rm -rf /var/cache/apk/*
 RUN rm -rf /tmp/thug/*
 RUN rm -rf /tmp/frontend/*
