@@ -5,7 +5,7 @@ services:
     image: mongo:latest
 
   redis:
-    image: redis:3.2.2-alpine
+    image: redis:latest
 
   web:
     build:
@@ -15,21 +15,17 @@ services:
     command: ["uwsgi", "--http", "0.0.0.0:5000", "--uid", "web", "--master", "--module", "app:app", "--processes", "1", "--threads", "8"]
     ports:
       - "5000:5000"
+    volumes:
+      - .:/opt/project
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
     entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "worker.tasks", "-Q", "thugtask"]
-
-  crawler:
-    build:
-      context: .
-      dockerfile: Dockerfile.crawler
-    entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "worker", "--autoreload", "-l", "info", "-A", "crawler.tasks", "-Q", "crawlertask"]
-
+    command: ["celery", "worker", "-l", "DEBUG", "-A", "worker.celeryapp", "-Q", "crawlertask, thugtask"]
+    volumes:
+      - .:/opt/project
 
   scheduler:
     build:
@@ -37,6 +33,8 @@ services:
       dockerfile: Dockerfile.scheduler
     entrypoint: ["/entrypoint.sh"]
     command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
+    volumes:
+      - .:/opt/project
 
 
 

@@ -12,8 +12,6 @@ RUN apk update && \
 # CREATE FOLDER STRUCTURE
 COPY ./scheduler/entrypoint.sh /
 COPY ./scheduler /opt/project/scheduler/
-COPY ./crawler /opt/project/crawler/
-COPY ./worker /opt/project/worker/
 
 # INSTALL PYTHON DEPENDENCIES
 RUN cd /opt/project/scheduler && \
@@ -26,7 +24,7 @@ RUN addgroup -S scheduler && adduser -S -G scheduler scheduler
 RUN chmod +x /entrypoint.sh
 
 # COPY CONFIG
-COPY ./config.json /opt/project/config.json
+COPY ./config.py /opt/project/scheduler/config.py
 
 # CLEAN UP
 RUN apk del python-dev py-pip

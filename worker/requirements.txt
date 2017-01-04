@@ -1,4 +1,5 @@
-celery==3.1.22
+celery
 redis
-pymongo==3.2.2
+pymongo
 geoip2
+scrapy

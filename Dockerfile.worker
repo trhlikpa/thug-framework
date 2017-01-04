@@ -1,8 +1,15 @@
+#
+# This Docker image is based on file
+# which was created by Angelo Dell'Aera  and is available at
+# https://hub.docker.com/r/buffer/thug/~/dockerfile/
+#
+
 # WORKER IMAGE
 FROM ubuntu:14.04
 
 USER root
 
+# INSTALL NON PYTHON DEPENDENCIES
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
     build-essential \
@@ -15,21 +22,26 @@ RUN apt-get update && \
     libxslt-dev \
     git \
     libtool \
+    graphviz-dev \
     automake \
     libffi-dev \
-    graphviz-dev \
     graphviz \
-    libgraphviz-dev \
-    pkg-config \
     libfuzzy-dev \
-	libjpeg8-dev \
+    libjpeg8-dev \
+    libssl-dev \
+    pkg-config \
     autoconf && \
   rm -rf /var/lib/apt/lists/*
 
-RUN easy_install -U setuptools pip pygraphviz
+# INSTALL AND UPGRAGE PYTHON SETUPTOOLS
+RUN pip install setuptools --upgrade
 
-WORKDIR /home
+# INSTALL CORRECT GRAPHVIZ VERSION
+RUN easy_install -U pygraphviz==1.3.1
 
+WORKDIR /tmp
+
+# INSTALL PYV8
 RUN git clone https://github.com/buffer/pyv8.git && \
   cd pyv8 && \
   python setup.py build && \
@@ -37,32 +49,34 @@ RUN git clone https://github.com/buffer/pyv8.git && \
   cd .. && \
   rm -rf pyv8
 
+# INSTALL THUG
 RUN pip install thug
 
 RUN echo "/opt/libemu/lib/" > /etc/ld.so.conf.d/libemu.conf && ldconfig
 
-
 # CREATE FOLDER STRUCTURE
 COPY ./worker/entrypoint.sh /
 COPY ./worker /opt/project/worker/
+COPY ./config.py /opt/project/worker/
 
 # CREATE USER, ENV_PATHS
 RUN chmod +x /entrypoint.sh
+RUN adduser --disabled-password --gecos '' worker
+
 ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/worker/
-RUN adduser --disabled-password --gecos '' user
 
 # INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
 
-RUN git clone https://github.com/pygraphviz/pygraphviz.git && \
-    cd pygraphviz && \
-    python setup.py install
+# CLEAN UP
+RUN apt-get -y remove \
+      build-essential \
+      python-dev \
+      python-setuptools \
+      python-pip \
+      git \
+      libffi-dev \
+      libssl-dev
 
-# COPY CONFIG
-COPY ./config.json /opt/project/config.json
-
-USER user
-
-
-
+USER worker

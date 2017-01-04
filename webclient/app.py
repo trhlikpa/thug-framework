@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from webclient import config
 
 app = Flask(__name__, static_folder='./frontend/static', template_folder='./frontend')
-app.config.update(config)
+app.config.from_object('config')
 
 # Import blueprints
 from webclient.api import api_blueprint

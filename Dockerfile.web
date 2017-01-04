@@ -1,56 +1,61 @@
-# WEBCLIENT IMAGE BASED ON ALPINE
-FROM alpine:latest
+# WEBCLIENT IMAGE
+FROM ubuntu:14.04
+
+USER root
 
 # INSTALL NON PYTHON DEPENDENCIES
-RUN apk update && \
-	apk upgrade && \
-	apk add git && \
-	apk add python && \
-	apk add python-dev && \
-	apk add py-pip && \
-	apk add py-setuptools && \
-	apk add musl-dev && \
-	apk add libffi-dev && \
-	apk add openssl-dev && \
-	apk add python3-dev && \
-	apk add build-base && \
-	apk add linux-headers && \
-	apk add pcre-dev && \
-	apk add bash && \
-	apk add gcc
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+    build-essential \
+    python-dev \
+    python-setuptools \
+    python-pip \
+    git \
+    libffi-dev \
+    libssl-dev \
+    libpcre3 \
+    libpcre3-dev \
+    pkg-config \
+    autoconf && \
+  rm -rf /var/lib/apt/lists/*
+
+# INSTALL AND UPGRAGE PYTHON SETUPTOOLS
+RUN pip install setuptools --upgrade
 
 # CREATE FOLDER STRUCTURE
 COPY ./webclient/entrypoint.sh /
 COPY ./webclient /opt/project/webclient/
-COPY ./worker /opt/project/worker/
-COPY ./crawler /opt/project/crawler/
+COPY ./config.py /opt/project/webclient/
+
+# CREATE USER, ENV_PATHS
+RUN chmod +x /entrypoint.sh
+RUN adduser --disabled-password --gecos '' web
+
+ENV PYTHONPATH /opt/project/
+WORKDIR /opt/project/webclient/
 
 # INSTALL PYTHON DEPENDENCIES
-RUN cd /opt/project/webclient && \
-    pip install -r requirements.txt
-
-# INSTALL PYTHON WEB SERVER
-RUN pip install https://github.com/unbit/uwsgi/archive/uwsgi-2.0.zip#egg=uwsgi
+RUN pip install -r requirements.txt
 
 # IMPORT THUG WEB BROWSER PERSONALITIES
 RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
     cp /tmp/thug/thug/DOM/personalities/* /opt/project/webclient/api/models/personalities
-
-# CREATE USER, ENV_PATHS
-ENV PYTHONPATH /opt/project/
-WORKDIR /opt/project/webclient/
-RUN addgroup -S web && adduser -S -G web web
-RUN chmod +x /entrypoint.sh
-
-# COPY CONFIG
-COPY ./config.json /opt/project/config.json
 
 # IMPORT FRONTEND
 RUN git clone https://github.com/trhlikpa/thug-frontend.git /tmp/frontend && \
     cp -r /tmp/frontend/dist/* /opt/project/webclient/frontend
 
 # CLEAN UP
-RUN apk del py-pip git gcc python-dev musl-dev libffi-dev openssl-dev python3-dev build-base py-setuptools
-RUN rm -rf /var/cache/apk/*
+RUN apt-get -y remove \
+      build-essential \
+      python-dev \
+      python-setuptools \
+      python-pip \
+      git \
+      libffi-dev \
+      libssl-dev
+
 RUN rm -rf /tmp/thug/*
 RUN rm -rf /tmp/frontend/*
+
+USER web
