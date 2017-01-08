@@ -15,12 +15,7 @@ CELERY_ROUTES = {
   "worker.crawltask.task.crawl_urls": {"queue": "crawlertask"}
 }
 
-THUG_TIMELIMIT = 600
-
 MONGODB_URL = 'mongodb://db:27017'
 MONGODB_DATABASE = 'thug_database'
 
 GEOIP2_PATH = None
-
-CRAWLER_DOWNLOAD_DELAY = 5
-CRAWLER_TIMELIMIT = 3600

@@ -1,21 +1,12 @@
 import json
-from webclient import config
 from bson import ObjectId
+from webclient.dbcontext import db
 from webclient.api.models.jobs import get_job
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
-from webclient.api.utils.celeryutil import normalize_state
-from webclient.dbcontext import db
-from worker.tasks import analyze_url
+from worker.thug.tasks import analyze
 
 
 def get_tasks(args, job_id=None):
-    """
-    Method queries tasks from database
-    :param job_id:
-    :param args:
-    :return: list of tasks
-    """
-    normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
     filter_fields = None
@@ -56,24 +47,12 @@ def get_tasks(args, job_id=None):
 
 
 def get_task(task_id, collums=None):
-    """
-    Method queries specified task from database
-    :param collums:
-    :param task_id: task id
-    :return: specified task
-    """
-    normalize_state(db.tasks, float(config['THUG_TIMELIMIT']))
     task = db.tasks.find_one({'_id': ObjectId(task_id)}, collums is None if {} else collums)
 
     return task
 
 
 def create_task(data):
-    """
-    Method puts new task into thug worker queue
-    :param data: input data
-    :return: task id
-    """
     json_data = {
         '_state': 'PENDING',
         'start_time': None,
@@ -85,16 +64,12 @@ def create_task(data):
     input_data = {x: data[x] if x in data else ''
                   for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
 
-    analyze_url.apply_async(args=[input_data], task_id=str(oid))
+    analyze.apply_async(args=[input_data], task_id=str(oid))
     return str(oid)
 
 
 def delete_task(task_id):
-    """
-    Method revokes task
-    :param task_id: task id
-    """
-    analyze_url.AsyncResult(task_id).revoke()
+    analyze.AsyncResult(task_id).revoke()
     result_db = db.tasks.delete_one({'_id': ObjectId(task_id)})
 
     if result_db.deleted_count > 0:

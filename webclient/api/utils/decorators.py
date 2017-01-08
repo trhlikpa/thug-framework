@@ -1,8 +1,9 @@
 import jwt
 from jwt.exceptions import InvalidTokenError
 from functools import wraps
-from flask import current_app, request, g
+from flask import request, g
 from flask_restful import abort
+from webclient import config
 from webclient.api.models.users import get_user
 
 
@@ -14,7 +15,7 @@ def login_required(func):
                 abort(404, message='You need log in to access protected resource')
 
             token = request.headers.get('authorization')
-            decoded_token = jwt.decode(token, current_app.config['SECRET_KEY'], algorithm='HS256')
+            decoded_token = jwt.decode(token, config.SECRET_KEY, algorithm='HS256')
             user_id = decoded_token['_id']
             g.user = get_user(user_id)
 

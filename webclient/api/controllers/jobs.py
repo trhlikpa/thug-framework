@@ -18,7 +18,6 @@ class Job(Resource):
         return response
 
     @classmethod
-    @login_required
     def delete(cls, job_id):
         result = None
         try:
@@ -32,7 +31,6 @@ class Job(Resource):
 
 class JobList(Resource):
     @classmethod
-    @login_required
     def post(cls):
         parser = reqparse.RequestParser()
 

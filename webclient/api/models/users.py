@@ -1,9 +1,8 @@
 import bcrypt
-import hmac
 import datetime
 import jwt
 from bson import ObjectId
-from flask import current_app
+from webclient import config
 from webclient.dbcontext import db
 from jwt.exceptions import InvalidTokenError
 from validate_email import validate_email
@@ -16,9 +15,10 @@ def validate_user(email, password):
         raise LookupError('User account not found')
 
     hashed = user['password'].encode('utf-8')
-    if hmac.compare_digest(bcrypt.hashpw(password.encode('utf-8'), hashed), hashed):
+
+    if bcrypt.hashpw(password.encode('utf-8'), hashed) == hashed:
         try:
-            token = jwt.encode({'_id': str(user['_id'])}, current_app.config['SECRET_KEY'],
+            token = jwt.encode({'_id': str(user['_id'])}, config.SECRET_KEY,
                                algorithm='HS256')
             return token
         except Exception:

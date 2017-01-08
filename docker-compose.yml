@@ -23,16 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile.worker
     entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "worker", "-l", "DEBUG", "-A", "worker.celeryapp", "-Q", "crawlertask, thugtask"]
-    volumes:
-      - .:/opt/project
-
-  scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile.scheduler
-    entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.CustomMongoScheduler", "beat"]
+    command: ["celery", "worker", "-l", "DEBUG", "-A", "worker.tasks"]
     volumes:
       - .:/opt/project
 

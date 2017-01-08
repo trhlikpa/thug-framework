@@ -51,9 +51,7 @@ RUN apt-get -y remove \
       python-dev \
       python-setuptools \
       python-pip \
-      git \
-      libffi-dev \
-      libssl-dev
+      git
 
 RUN rm -rf /tmp/thug/*
 RUN rm -rf /tmp/frontend/*

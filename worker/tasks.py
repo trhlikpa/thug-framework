@@ -1,79 +1,12 @@
-import io
-import json
-import os
-import socket
-import datetime
-from urlparse import urlparse
-from bson import ObjectId
-from celery import Celery
-from pymongo import MongoClient
+from worker.celeryapp import celery
+from worker.crawler.tasks import crawl
+
+celery.autodiscover_tasks(['worker.crawler, worker.thug'])
 
 
-# Load config file
-__dir__ = os.path.dirname(os.path.realpath(__file__))
-with io.open(os.path.join(__dir__, '../config.json'), encoding='utf8') as f:
-    config = json.load(f)
-
-# Start celery and connect to redis
-celery = Celery('thugtasks', broker=config['CELERY_BROKER_URL'])
-celery.conf.update(config)
+def execute_job(input_data):
+    crawl.apply_async(args=[input_data])
 
 
-def get_ip(url):
-    """
-    Method resloves hostname to ip address
-    :param url: url to resolve
-    :return: ip address
-    """
-    netloc = urlparse(url).netloc
-    dom = netloc.split('@')[-1].split(':')[0]
-    return socket.gethostbyname(dom)
-
-
-@celery.task(bind='true', time_limit=float(config['THUG_TIMELIMIT']))
-def analyze_url(self, input_data):
-    """
-    Method puts new task into thug workers queue
-    :param self: self reference
-    :param input_data: input data
-    """
-
-    # lazy load of task dependencies
-    from thugapi import Thug
-    from geoloc import get_geoloc_info
-
-    db_client = MongoClient(config['MONGODB_URL'])
-    db = db_client[config['MONGODB_DATABASE']]
-
-    oid = str(self.request.id)
-
-    db.tasks.update_one({'_id': ObjectId(oid)}, {'$set': {
-        '_state': 'STARTED', 'start_time': datetime.datetime.utcnow().isoformat()}}, upsert=True)
-
-    output_data = dict()
-    output_data['_state'] = 'FAILURE'
-
-    try:
-        ip = get_ip(input_data['url'])
-        geoloc_data = get_geoloc_info(ip)
-        output_data['geolocation'] = geoloc_data.__dict__
-    except Exception as error:
-        geoloc_data = dict(error=error.message)
-        output_data['geolocation'] = geoloc_data
-
-    try:
-        thug = Thug(input_data)
-        log_path = thug.analyze()
-        json_path = os.path.join(log_path, 'analysis/json/analysis.json')
-
-        with io.open(json_path) as result:
-            thug_data = json.load(result)
-            output_data['_state'] = 'SUCCESS'
-            output_data.update(thug_data)
-    except Exception as error:
-        output_data['_state'] = 'FAILURE'
-        output_data['error'] = error.message
-    finally:
-        output_data['end_time'] = datetime.datetime.utcnow().isoformat()
-        db.tasks.update_one({'_id': ObjectId(oid)}, {'$set': output_data})
-        db_client.close()
+def revoke_job(job_id):
+    pass

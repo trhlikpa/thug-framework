@@ -32,7 +32,6 @@ class Task(Resource):
 
 class TaskList(Resource):
     @classmethod
-    @login_required
     def post(cls):
         parser = reqparse.RequestParser()
 
