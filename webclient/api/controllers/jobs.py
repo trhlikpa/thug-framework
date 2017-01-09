@@ -34,22 +34,32 @@ class JobList(Resource):
     def post(cls):
         parser = reqparse.RequestParser()
 
+        # General params
         parser.add_argument('name', type=str, help='Name of the job', required=True)
-        parser.add_argument('url', type=str, help='URL to analyze by thug', required=True)
+        parser.add_argument('url', type=str, help='URL to analyze', required=True)
         parser.add_argument('useragent', type=str, help='Browser personality', required=True)
         parser.add_argument('type', type=str, help='Job type (singleurl or extensive)', required=True,
                             choices=['singleurl', 'extensive'])
+        parser.add_argument('submitter_id', type=str, help='Submitter ID')
+
+        # Thug params
         parser.add_argument('java', type=str, help='Java plugin version')
         parser.add_argument('shockwave', type=str, help='Shockwave Flash plugin version')
         parser.add_argument('adobepdf', type=str, help='Adobe Acrobat Reader version')
         parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
-        parser.add_argument('depth', type=str, help='Webcrawler depth')
-        parser.add_argument('only_internal', type=str, help='Crawl only initial domain')
-        parser.add_argument('submitter', type=str, help='Submitter')
+
+        # Crawler params
+        parser.add_argument('depth_limit', type=int, help='Webcrawler depth limit')
+        parser.add_argument('download_delay', type=int, help='Webcrawler download delay')
+        parser.add_argument('randomize_download_delay', type=bool, help='Randomize webcrawler depth limit')
+        parser.add_argument('redirect_max_times', type=int, help='Webcrawler max redirects')
+        parser.add_argument('robotstxt_obey', type=bool, help='Should webcrawler obey robotstxt rules')
+        parser.add_argument('only_internal', type=bool, help='Crawl only initial domain')
 
         args = parser.parse_args()
 
         job_id = None
+
         try:
             job_id = create_job(args)
         except Exception as error:
