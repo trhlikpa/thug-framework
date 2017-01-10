@@ -12,6 +12,7 @@ def crawl(self):
         from worker.crawler.urlspider import UrlSpider
         from worker.utils.useragents import get_useragent_string
         from worker.utils.exceptions import DatabaseRecordError
+        from worker.utils.netutils import get_top_level_domain
 
         job = db.jobs.find_one({'_id': self.request.id})
 
@@ -28,11 +29,14 @@ def crawl(self):
         if user_agent is None:
             raise ValueError('User agent not found')
 
+        start_time = str(datetime.datetime.utcnow().isoformat())
+
         initial_output_data = {
             '_state': 'STARTED',
             '_substate': 'CRAWLING - STARTED',
             'useragent': user_agent,
-            'crawler_start_time': str(datetime.datetime.utcnow().isoformat())
+            'start_time': start_time,
+            'crawler_start_time': start_time
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': initial_output_data})
@@ -42,10 +46,10 @@ def crawl(self):
         # Scrapy process configuration
         process = CrawlerProcess({
             'USER_AGENT': user_agent,
-            'DOWNLOAD_DELAY': input_data.get('download_delay', 0),
             'DEPTH_LIMIT': input_data.get('depth_limit', 0),
-            'RANDOMIZE_DOWNLOAD_DELAY': input_data.get('randomize_download_delay', True),
-            'REDIRECT_MAX_TIMES': input_data.get('redirect_max_times', 20),
+            'DOWNLOAD_DELAY': input_data.get('download_delay', 0),
+            'RANDOMIZE_DOWNLOAD_DELAY': input_data.get('randomize_download_delay', False),
+            'REDIRECT_MAX_TIMES': input_data.get('redirect_max_times', 30),
             'ROBOTSTXT_OBEY': input_data.get('robotstxt_obey', False)
         })
 
@@ -56,9 +60,15 @@ def crawl(self):
         if url is None:
             raise AttributeError('URL is missing')
 
+        if allowed_domains is None or len(allowed_domains) < 1:
+            if only_internal:
+                domain = get_top_level_domain(url)
+                allowed_domains = [domain]
+            else:
+                allowed_domains = None
+
         process.crawl(UrlSpider,
                       url=url,
-                      only_internal=only_internal,
                       allowed_domains=allowed_domains,
                       callback=lambda link: urls.append(link.url)
                       )

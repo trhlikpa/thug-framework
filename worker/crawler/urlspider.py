@@ -1,48 +1,22 @@
-from scrapy import Spider, Request, http
-from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
-from worker.utils.netutils import get_top_level_domain
+from scrapy import http
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
 
 
-class UrlSpider(Spider):
-    """
-    Spider that extracts only links to the specified depth
-    """
-    name = "url_spider"
+class UrlSpider(CrawlSpider):
+    name = 'url_spider'
+    allowed_domains = ['example.com']
+    start_urls = ['http://www.example.com']
+    callback = None
 
-    def __init__(self, url, callback, only_internal=True, allowed_domains=None):
-        """
-        Spider constructor
-        :param url: start url
-        :param callback: spider runs callback for every link
-        :param only_internal: crawl only initial domain
-        :param allowed_domains: list of allowed domains
-        """
-        self.callback = callback
+    rules = (Rule(LinkExtractor(allow=()), callback='parse_obj', follow=True),)
+
+    def __init__(self, url, allowed_domains, callback, *args, **kwargs):
+        super(UrlSpider, self).__init__(*args, **kwargs)
         self.start_urls = [url]
+        self.allowed_domains = allowed_domains
+        self.callback = callback
 
-        if only_internal:
-            domain = get_top_level_domain(url)
-            self.allowed_domains = [domain]
-        elif allowed_domains is not None and len(allowed_domains) > 0:
-            self.allowed_domains = allowed_domains
-
-    def start_requests(self):
-        """
-`       Method is called only once by crawler when the spider is opened
-        Safe to implement as generator
-        :return: Iterable with http request
-        """
-        for url in self.start_urls:
-            yield Request(
-                url,
-                dont_filter=True,
-                callback=self.parse,
-            )
-
-    def parse(self, response):
-        """
-        Parses links from DOM and calls callback on every link
-        :param response: response to parse
-        """
-        for link in LxmlLinkExtractor(allow=(), deny=()).extract_links(response):
+    def parse_obj(self, response):
+        for link in LinkExtractor(allow=(), deny=self.allowed_domains).extract_links(response):
             yield http.Request(url=link.url, callback=self.callback)

@@ -1,3 +1,4 @@
+import datetime
 from worker.dbcontext import db
 from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
@@ -6,9 +7,10 @@ from uuid import uuid4
 celery.autodiscover_tasks(['worker.crawler, worker.thug'])
 
 
-def execute_job(submitter_id, job_name, job_type, job_args):
+def execute_job(submitter_id, job_name, job_type, job_args, crawler_time_limit=None, thug_time_limit=None):
 
     job_id = str(uuid4())
+    submit_time = str(datetime.datetime.utcnow().isoformat())
 
     json_data = {
         '_id': job_id,
@@ -20,11 +22,13 @@ def execute_job(submitter_id, job_name, job_type, job_args):
         'name': job_name,
         'useragent': None,
         'classification': None,
-        'submit_time': None,
+        'submit_time': submit_time,
         'start_time': None,
         'end_time': None,
         'crawler_start_time': None,
         'crawler_end_time': None,
+        'crawler_time_limit': crawler_time_limit,
+        'thug_time_limit': thug_time_limit,
         'submitter_id': submitter_id,
         'schedule_id': None,
         'args': job_args,
@@ -33,7 +37,7 @@ def execute_job(submitter_id, job_name, job_type, job_args):
 
     db.jobs.insert_one(json_data)
 
-    crawl.apply_async(task_id=job_id)
+    crawl.apply_async(task_id=job_id, time_limit=crawler_time_limit)
 
     return job_id
 

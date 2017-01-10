@@ -1,8 +1,12 @@
 from worker import config
 from celery import Celery
 
+
 # Celery config object
 class Config:
+    def __init__(self):
+        pass
+
     timezone = 'UTC'
     accept_content = ['application/json']
     task_serializer = 'json'
