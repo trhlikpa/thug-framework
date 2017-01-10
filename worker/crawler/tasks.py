@@ -1,8 +1,6 @@
 import datetime
 from worker.celeryapp import celery
 from worker.dbcontext import db
-from worker.utils.useragents import get_useragent_string
-from worker.utils.exceptions import DatabaseRecordError
 
 
 @celery.task(bind=True)
@@ -12,6 +10,8 @@ def crawl(self):
         from scrapy.crawler import CrawlerProcess
         from scrapy.http.request import Request
         from worker.crawler.urlspider import UrlSpider
+        from worker.utils.useragents import get_useragent_string
+        from worker.utils.exceptions import DatabaseRecordError
 
         job = db.jobs.find_one({'_id': self.request.id})
 
@@ -23,10 +23,16 @@ def crawl(self):
         if input_data is None:
             raise DatabaseRecordError('Job record has incorrect format')
 
+        user_agent = get_useragent_string(input_data.get('useragent'))
+
+        if user_agent is None:
+            raise ValueError('User agent not found')
+
         initial_output_data = {
             '_state': 'STARTED',
             '_substate': 'CRAWLING - STARTED',
-            'crawl_start_time': str(datetime.datetime.utcnow().isoformat())
+            'useragent': user_agent,
+            'crawler_start_time': str(datetime.datetime.utcnow().isoformat())
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': initial_output_data})
@@ -35,7 +41,7 @@ def crawl(self):
 
         # Scrapy process configuration
         process = CrawlerProcess({
-            'USER_AGENT': get_useragent_string(input_data.get('useragent', None)),
+            'USER_AGENT': user_agent,
             'DOWNLOAD_DELAY': input_data.get('download_delay', 0),
             'DEPTH_LIMIT': input_data.get('depth_limit', 0),
             'RANDOMIZE_DOWNLOAD_DELAY': input_data.get('randomize_download_delay', True),
@@ -62,7 +68,7 @@ def crawl(self):
         success_output_data = {
             'urls': urls,
             '_substate': 'CRAWLING - SUCCESS',
-            'crawl_end_time': str(datetime.datetime.utcnow().isoformat())
+            'crawler_end_time': str(datetime.datetime.utcnow().isoformat())
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': success_output_data})
@@ -73,8 +79,7 @@ def crawl(self):
             '_state': 'FAILURE',
             '_substate': 'CRAWLING - FAILURE',
             '_error': error.message,
-            'crawl_end_time': str(datetime.datetime.utcnow().isoformat())
+            'crawler_end_time': str(datetime.datetime.utcnow().isoformat())
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': failure_output_data})
-
