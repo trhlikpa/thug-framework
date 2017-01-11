@@ -19,12 +19,17 @@ def crawl(self):
         if job is None:
             raise DatabaseRecordError('Job not found in database')
 
-        input_data = job.get('args')
+        url = job.get('url')
 
-        if input_data is None:
+        if url is None:
+            raise AttributeError('URL is missing')
+
+        args = job.get('args')
+
+        if args is None:
             raise DatabaseRecordError('Job record has incorrect format')
 
-        user_agent = get_useragent_string(input_data.get('useragent'))
+        user_agent = get_useragent_string(job.get('useragent'))
 
         if user_agent is None:
             raise ValueError('User agent not found')
@@ -34,7 +39,6 @@ def crawl(self):
         initial_output_data = {
             '_state': 'STARTED',
             '_substate': 'CRAWLING - STARTED',
-            'useragent': user_agent,
             'start_time': start_time,
             'crawler_start_time': start_time
         }
@@ -46,19 +50,15 @@ def crawl(self):
         # Scrapy process configuration
         process = CrawlerProcess({
             'USER_AGENT': user_agent,
-            'DEPTH_LIMIT': input_data.get('depth_limit', 0),
-            'DOWNLOAD_DELAY': input_data.get('download_delay', 0),
-            'RANDOMIZE_DOWNLOAD_DELAY': input_data.get('randomize_download_delay', False),
-            'REDIRECT_MAX_TIMES': input_data.get('redirect_max_times', 30),
-            'ROBOTSTXT_OBEY': input_data.get('robotstxt_obey', False)
+            'DEPTH_LIMIT': args.get('depth_limit', 1),
+            'DOWNLOAD_DELAY': args.get('download_delay', 0),
+            'RANDOMIZE_DOWNLOAD_DELAY': args.get('randomize_download_delay', False),
+            'REDIRECT_MAX_TIMES': args.get('redirect_max_times', 30),
+            'ROBOTSTXT_OBEY': args.get('robotstxt_obey', False)
         })
 
-        url = input_data.get('url', None)
-        only_internal = input_data.get('only_internal', True)
-        allowed_domains = input_data.get('allowed_domains', None)
-
-        if url is None:
-            raise AttributeError('URL is missing')
+        allowed_domains = args.get('allowed_domains')
+        only_internal = args.get('only_internal', True)
 
         if allowed_domains is None or len(allowed_domains) < 1:
             if only_internal:

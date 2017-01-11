@@ -50,14 +50,14 @@ class JobList(Resource):
         parser.add_argument('thug_time_limit', type=int, help='Time limit for thug execution')
 
         # Crawler params
-        parser.add_argument('depth_limit', type=int, help='Webcrawler depth limit', default=0)
-        parser.add_argument('download_delay', type=int, help='Webcrawler download delay', default=0)
-        parser.add_argument('randomize_download_delay', type=bool, help='Randomize crawler depth limit', default=False)
-        parser.add_argument('redirect_max_times', type=int, help='Webcrawler max redirects', default=30)
-        parser.add_argument('robotstxt_obey', type=bool, help='Should webcrawler obey robotstxt rules', default=False)
-        parser.add_argument('only_internal', type=bool, help='Crawl only initial domain', default=True)
-        parser.add_argument('crawler_time_limit', type=int, help='Time limit for crawler', default=3600)
-        parser.add_argument('allowed_domains', type=list, help='List of allowed domains')
+        parser.add_argument('depth_limit', type=int, help='Webcrawler depth limit')
+        parser.add_argument('download_delay', type=int, help='Webcrawler download delay')
+        parser.add_argument('randomize_download_delay', type=bool, help='Randomize crawler depth limit')
+        parser.add_argument('redirect_max_times', type=int, help='Webcrawler max redirects')
+        parser.add_argument('robotstxt_obey', type=bool, help='Should webcrawler obey robotstxt rules')
+        parser.add_argument('only_internal', type=bool, help='Crawl only initial domain')
+        parser.add_argument('crawler_time_limit', type=int, help='Time limit for crawler')
+        parser.add_argument('allowed_domains', type=list, location='json', help='List of allowed domains')
 
         args = parser.parse_args()
 

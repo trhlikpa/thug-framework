@@ -101,24 +101,27 @@ def create_job(data):
     submitter_id = data.get('submitter_id')
     crawler_time_limit = data.get('crawler_time_limit')
     thug_time_limit = data.get('thug_time_limit')
+    url = data.get('url')
+    user_agent = data.get('useragent')
 
     job_args = {x: data[x] if x in data else None for x in
-                {'useragent',
-                 'url',
-                 'java',
-                 'shockwave',
-                 'adobepdf',
-                 'proxy',
-                 'depth_limit',
-                 'only_internal',
-                 'allowed_domains',
-                 'download_delay',
-                 'randomize_download_delay',
-                 'redirect_max_times',
-                 'robotstxt_obey'
-                 }}
+                {
+                    'java',
+                    'shockwave',
+                    'adobepdf',
+                    'proxy',
+                    'depth_limit',
+                    'only_internal',
+                    'allowed_domains',
+                    'download_delay',
+                    'randomize_download_delay',
+                    'redirect_max_times',
+                    'robotstxt_obey'
+                }}
 
-    job_id = execute_job(submitter_id=submitter_id,
+    job_id = execute_job(url=url,
+                         user_agent=user_agent,
+                         submitter_id=submitter_id,
                          job_type=job_type,
                          job_name=job_name,
                          job_args=job_args,
