@@ -38,7 +38,6 @@ def crawl(self):
 
         initial_output_data = {
             '_state': 'STARTED',
-            '_substate': 'CRAWLING - STARTED',
             'start_time': start_time,
             'crawler_start_time': start_time
         }
@@ -75,21 +74,24 @@ def crawl(self):
 
         process.start(True)
 
+        end_time = str(datetime.datetime.utcnow().isoformat())
+
         success_output_data = {
-            'urls': urls,
-            '_substate': 'CRAWLING - SUCCESS',
-            'crawler_end_time': str(datetime.datetime.utcnow().isoformat())
+            'tasks': urls,
+            'crawler_end_time': end_time
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': success_output_data})
 
-    except BaseException as error:
+    except Exception as error:
+        end_time = str(datetime.datetime.utcnow().isoformat())
+
         failure_output_data = {
-            'urls': [],
+            'tasks': [],
             '_state': 'FAILURE',
-            '_substate': 'CRAWLING - FAILURE',
             '_error': error.message,
-            'crawler_end_time': str(datetime.datetime.utcnow().isoformat())
+            'end_time': end_time,
+            'crawler_end_time': end_time
         }
 
         db.jobs.update_one({'_id': self.request.id}, {'$set': failure_output_data})

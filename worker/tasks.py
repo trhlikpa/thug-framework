@@ -1,15 +1,15 @@
 import datetime
+from uuid import uuid4
 from worker.dbcontext import db
 from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
-from uuid import uuid4
+from celery.signals import after_task_publish
 
 celery.autodiscover_tasks(['worker.crawler, worker.thug'])
 
 
 def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
                 crawler_time_limit=None, thug_time_limit=None):
-
     job_id = str(uuid4())
 
     submit_time = str(datetime.datetime.utcnow().isoformat())
@@ -53,7 +53,6 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
     json_data = {
         '_id': job_id,
         '_state': 'PENDING',
-        '_substate': None,
         '_current_url': None,
         '_error': None,
         'type': job_type,
@@ -71,7 +70,7 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
         'submitter_id': submitter_id,
         'schedule_id': None,
         'args': job_args,
-        'urls': []
+        'tasks': []
     }
 
     db.jobs.insert_one(json_data)
@@ -82,4 +81,29 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
 
 
 def revoke_job(job_id):
+    pass
+
+
+@after_task_publish.connect(sender='worker.thug.tasks.analyze')
+def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
+    submit_time = str(datetime.datetime.utcnow().isoformat())
+
+    info = headers if 'task' in headers else body
+
+    after_publish_data = {
+        '_id':  info['id'],
+        '_state': 'PENDING',
+        '_error': None,
+        'submit_time': submit_time,
+        'start_time': None,
+        'end_time': None,
+        'job_id': None,
+        'classification': None
+    }
+
+    db.tasks.insert_one(after_publish_data)
+
+
+@after_task_publish.connect(sender='worker.geolocation.tasks.locate')
+def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
     pass
