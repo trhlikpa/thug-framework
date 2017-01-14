@@ -1,71 +1,104 @@
-import hashlib
 import logging
 import os
-from datetime import datetime
+import ConfigParser
 from thug.ThugAPI import ThugAPI
+from worker import config
+
 
 __log__ = logging.getLogger('Thug')
 __log__.setLevel(logging.WARN)
 __cfgpath__ = '/etc/thug'
-__logpath__ = '/opt/thug/logs/'
+__logpath__ = '/etc/thug/logs/'
 
 
 class Thug(ThugAPI):
-    """
-    Class represents thug instance
-    """
-    def __init__(self, cfg):
-        """
-        Thug ctor
-        :param cfg: thug parameters
-        """
-        if not cfg or 'url' not in cfg:
-            raise ValueError('URL not found')
+    def __init__(self):
+        config_parser = ConfigParser.ConfigParser()
 
-        self._cfg = cfg
+        strs = config.MONGODB_URL.split(':')
+        host = strs[1].strip('//')
+        port = strs[2]
+
+        config_parser.add_section('mongodb')
+        config_parser.set('mongodb', 'enable', 'True')
+        config_parser.set('mongodb', 'host', host)
+        config_parser.set('mongodb', 'port', port)
+
+        config_parser.add_section('hpfeeds')
+        config_parser.set('hpfeeds', 'enable', 'False')
+        config_parser.set('hpfeeds', 'host', 'hpfeeds.honeycloud.net')
+        config_parser.set('hpfeeds', 'port', '10000')
+        config_parser.set('hpfeeds', 'ident', 'q6jyo@hp1')
+        config_parser.set('hpfeeds', 'secret', 'edymvouqpfe1ivud')
+
+        with open(os.path.join(__cfgpath__, 'logging.conf'), 'wb') as configfile:
+            config_parser.write(configfile)
+
         ThugAPI.__init__(self)
 
-    def analyze(self):
-        """
-        Method starts thug analyze
-        :return: path to log file
-        """
-        self.set_file_logging()
-        self.set_json_logging()
+    def analyze_url(self, url, useragent, referer, java, shockwave, adobepdf, proxy, dom_events, no_cache, web_tracking,
+                    timeout, url_classifiers, html_classifiers, js_classifiers, vb_classifiers, sample_classifiers):
 
-        for k, v in self._cfg.items():
-            if v is None:
-                self._cfg[k] = ''
+        if useragent:
+            self.set_useragent(useragent)
+        else:
+            raise AttributeError('User agent is missing')
 
-        if len(self._cfg.get('useragent', '')) > 0:
-            self.set_useragent(self._cfg['useragent'])
-
-        if len(self._cfg.get('java', '')) > 0:
-            self.set_javaplugin(self._cfg['java'])
+        if java:
+            self.set_javaplugin(java)
         else:
             self.disable_javaplugin()
 
-        if len(self._cfg.get('shockwave', '')) > 0:
-            self.set_shockwave_flash(self._cfg['shockwave'])
+        if shockwave:
+            self.set_shockwave_flash(shockwave)
         else:
             self.disable_shockwave_flash()
 
-        if len(self._cfg.get('adobepdf', '')) > 0:
-            self.set_acropdf_pdf(self._cfg['adobepdf'])
+        if adobepdf:
+            self.set_acropdf_pdf(adobepdf)
         else:
             self.disable_acropdf()
 
-        if len(self._cfg.get('proxy', '')) > 0:
-            self.set_proxy(self._cfg['proxy'])
+        if proxy:
+            self.set_proxy(proxy)
 
-        self.log_init(self._cfg['url'])
+        if referer:
+            self.set_referer(referer)
 
-        url_md5 = hashlib.md5(self._cfg['url']).hexdigest()
-        time = datetime.now().strftime('%Y%m%d%H%M%S%f')
-        log_path = os.path.join(__logpath__, url_md5, time)
+        if dom_events:
+            self.set_events(dom_events)
 
-        self.set_log_dir(log_path)
-        self.run_remote(self._cfg['url'])
+        if no_cache:
+            self.set_no_cache()
+
+        if web_tracking:
+            self.set_web_tracking()
+
+        if timeout:
+            self.set_timeout(timeout)
+
+        if url_classifiers:
+            for classifier in url_classifiers:
+                self.add_urlclassifier(classifier)
+
+        if html_classifiers:
+            for classifier in html_classifiers:
+                self.add_htmlclassifier(classifier)
+
+        if js_classifiers:
+            for classifier in js_classifiers:
+                self.add_jsclassifier(classifier)
+
+        if vb_classifiers:
+            for classifier in vb_classifiers:
+                self.add_vbsclassifier(classifier)
+
+        if sample_classifiers:
+            for classifier in sample_classifiers:
+                self.add_sampleclassifier(classifier)
+
+        self.log_init(url)
+
+        self.run_remote(url)
 
         self.log_event()
-        return log_path

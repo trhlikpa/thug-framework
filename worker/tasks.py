@@ -3,6 +3,7 @@ from uuid import uuid4
 from worker.dbcontext import db
 from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
+from worker.thug.tasks import analyze
 from celery.signals import after_task_publish
 
 celery.autodiscover_tasks(['worker.crawler, worker.thug'])
@@ -75,7 +76,11 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
 
     db.jobs.insert_one(json_data)
 
-    crawl.apply_async(task_id=job_id, time_limit=crawler_time_limit)
+    if job_type == 'singleurl':
+        task_id = str(uuid4())
+        analyze.apply_async(args=[url, job_id], task_id=task_id, time_limit=thug_time_limit)
+    else:
+        crawl.apply_async(task_id=job_id, time_limit=crawler_time_limit)
 
     return job_id
 
@@ -105,5 +110,5 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
 
 
 @after_task_publish.connect(sender='worker.geolocation.tasks.locate')
-def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
+def geolocation_sent_handler(sender=None, headers=None, body=None, **kwargs):
     pass

@@ -61,6 +61,7 @@ COPY ./config.py /opt/project/worker/
 
 # CREATE USER, ENV_PATHS
 RUN chmod +x /entrypoint.sh
+RUN chmod a+w /etc/thug/
 RUN adduser --disabled-password --gecos '' worker
 
 ENV PYTHONPATH /opt/project/
