@@ -88,6 +88,7 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
     submit_time = str(datetime.utcnow().isoformat())
 
     info = headers if 'task' in headers else body
+    job_id = ObjectId(info['argsrepr'].split(',')[1].strip(' \"[]\''))
 
     after_publish_data = {
         '_id':  ObjectId(info['id']),
@@ -96,7 +97,7 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
         'submit_time': submit_time,
         'start_time': None,
         'end_time': None,
-        'job_id': None,
+        'job_id': job_id,
         'classification': None
     }
 

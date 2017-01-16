@@ -67,10 +67,18 @@ def analyze(self, url, job_id):
 
         end_time = str(datetime.utcnow().isoformat())
 
+        exploits = db.exploits.find_one({'analysis_id': ObjectId(analysis_id)})
+
+        classification = 'CLEAR'
+
+        if exploits is not None:
+            classification = 'INFECTED'
+
         success_output_data = {
             '_state': 'SUCCESSFUL',
             'end_time': end_time,
-            'analysis_id': ObjectId(analysis_id)
+            'analysis_id': ObjectId(analysis_id),
+            'classification': classification
         }
 
         db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
@@ -82,7 +90,8 @@ def analyze(self, url, job_id):
             '_state': 'FAILURE',
             '_error': error.message,
             'end_time': end_time,
-            'analysis_id': None
+            'analysis_id': None,
+            'classification': 'SUSPICIOUS'
         }
 
         db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})
