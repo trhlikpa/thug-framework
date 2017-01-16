@@ -1,6 +1,8 @@
-import datetime
+from datetime import datetime
+from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
+from worker.utils.exceptions import DatabaseRecordError
 
 
 @celery.task(bind=True)
@@ -8,10 +10,9 @@ def analyze(self, url, job_id):
     try:
         # Lazy load of task dependencies
         from thugapi import Thug
-        from worker.utils.exceptions import DatabaseRecordError
         from worker.utils.useragents import get_useragent_string
 
-        job = db.jobs.find_one({'_id': job_id})
+        job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
         if job is None:
             raise DatabaseRecordError('Job not found in database')
@@ -31,7 +32,7 @@ def analyze(self, url, job_id):
 
         job_type = job.get('type')
 
-        start_time = str(datetime.datetime.utcnow().isoformat())
+        start_time = str(datetime.utcnow().isoformat())
 
         initial_output_data = {
             '_state': 'STARTED',
@@ -39,13 +40,14 @@ def analyze(self, url, job_id):
         }
 
         if job_type == 'singleurl':
-            db.jobs.update_one({'_id': job_id}, {'$set': initial_output_data})
+            db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': initial_output_data})
 
-        db.tasks.update_one({'_id': self.request.id}, {'$set': initial_output_data}, upsert=True)
+        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data}, upsert=True)
 
         thug = Thug()
 
-        thug.analyze_url(url=url,
+        analysis_id = thug.analyze_url(
+                         url=url,
                          useragent=user_agent,
                          referer=args.get('referer'),
                          java=args.get('java'),
@@ -63,5 +65,24 @@ def analyze(self, url, job_id):
                          sample_classifiers=args.get('sample_classifiers')
                          )
 
-    except IOError as error:
-        pass
+        end_time = str(datetime.utcnow().isoformat())
+
+        success_output_data = {
+            '_state': 'SUCCESSFUL',
+            'end_time': end_time,
+            'analysis_id': ObjectId(analysis_id)
+        }
+
+        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
+
+    except Exception as error:
+        end_time = str(datetime.utcnow().isoformat())
+
+        failure_output_data = {
+            '_state': 'FAILURE',
+            '_error': error.message,
+            'end_time': end_time,
+            'analysis_id': None
+        }
+
+        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})

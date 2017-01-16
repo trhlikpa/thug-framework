@@ -18,7 +18,7 @@ CELERY_ROUTES = {
 THUG_TIMELIMIT = 600
 
 MONGODB_URL = 'mongodb://db:27017'
-MONGODB_DATABASE = 'thug_database'
+MONGODB_DATABASE = 'thug'
 
 GEOIP2_PATH = None
 

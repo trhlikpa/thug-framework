@@ -8,7 +8,7 @@ from worker import config
 __log__ = logging.getLogger('Thug')
 __log__.setLevel(logging.WARN)
 __cfgpath__ = '/etc/thug'
-__logpath__ = '/etc/thug/logs/'
+__logpath__ = '/opt/project/worker/logs/'
 
 
 class Thug(ThugAPI):
@@ -102,3 +102,6 @@ class Thug(ThugAPI):
         self.run_remote(url)
 
         self.log_event()
+
+        mongo =  __log__.ThugLogging.modules['mongodb']
+        return str(mongo.get_url(url))

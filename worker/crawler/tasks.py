@@ -1,4 +1,5 @@
 import datetime
+from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
 
@@ -14,7 +15,7 @@ def crawl(self):
         from worker.utils.exceptions import DatabaseRecordError
         from worker.utils.netutils import get_top_level_domain
 
-        job = db.jobs.find_one({'_id': self.request.id})
+        job = db.jobs.find_one({'_id': ObjectId(self.request.id)})
 
         if job is None:
             raise DatabaseRecordError('Job not found in database')
@@ -42,7 +43,7 @@ def crawl(self):
             'crawler_start_time': start_time
         }
 
-        db.jobs.update_one({'_id': self.request.id}, {'$set': initial_output_data})
+        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data})
 
         urls = []
 
@@ -81,7 +82,7 @@ def crawl(self):
             'crawler_end_time': end_time
         }
 
-        db.jobs.update_one({'_id': self.request.id}, {'$set': success_output_data})
+        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
 
     except Exception as error:
         end_time = str(datetime.datetime.utcnow().isoformat())
@@ -94,4 +95,4 @@ def crawl(self):
             'crawler_end_time': end_time
         }
 
-        db.jobs.update_one({'_id': self.request.id}, {'$set': failure_output_data})
+        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})

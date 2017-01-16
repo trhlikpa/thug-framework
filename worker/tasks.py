@@ -1,5 +1,5 @@
-import datetime
-from uuid import uuid4
+from datetime import datetime
+from bson import ObjectId
 from worker.dbcontext import db
 from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
@@ -11,9 +11,7 @@ celery.autodiscover_tasks(['worker.crawler, worker.thug'])
 
 def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
                 crawler_time_limit=None, thug_time_limit=None):
-    job_id = str(uuid4())
-
-    submit_time = str(datetime.datetime.utcnow().isoformat())
+    submit_time = str(datetime.utcnow().isoformat())
 
     if url is None:
         raise AttributeError('URL is missing')
@@ -26,12 +24,6 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
     job_args['adobepdf'] = job_args.get('adobepdf')
     job_args['proxy'] = job_args.get('proxy')
     job_args['allowed_domains'] = job_args.get('allowed_domains')
-    job_args['depth_limit'] = job_args.get('depth_limit', 1)
-    job_args['only_internal'] = job_args.get('only_internal', True)
-    job_args['download_delay'] = job_args.get('download_delay', 0)
-    job_args['randomize_download_delay'] = job_args.get('randomize_download_delay', False)
-    job_args['redirect_max_times'] = job_args.get('redirect_max_times', 30)
-    job_args['robotstxt_obey'] = job_args.get('robotstxt_obey', False)
 
     if job_args.get('depth_limit') is None:
         job_args['depth_limit'] = 1
@@ -50,6 +42,8 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
 
     if job_args.get('robotstxt_obey') is None:
         job_args['robotstxt_obey'] = False
+
+    job_id = ObjectId()
 
     json_data = {
         '_id': job_id,
@@ -77,12 +71,12 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
     db.jobs.insert_one(json_data)
 
     if job_type == 'singleurl':
-        task_id = str(uuid4())
-        analyze.apply_async(args=[url, job_id], task_id=task_id, time_limit=thug_time_limit)
+        task_id = ObjectId()
+        analyze.apply_async(args=[url, str(job_id)], task_id=str(task_id), time_limit=thug_time_limit)
     else:
-        crawl.apply_async(task_id=job_id, time_limit=crawler_time_limit)
+        crawl.apply_async(task_id=str(job_id), time_limit=crawler_time_limit)
 
-    return job_id
+    return str(job_id)
 
 
 def revoke_job(job_id):
@@ -91,12 +85,12 @@ def revoke_job(job_id):
 
 @after_task_publish.connect(sender='worker.thug.tasks.analyze')
 def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
-    submit_time = str(datetime.datetime.utcnow().isoformat())
+    submit_time = str(datetime.utcnow().isoformat())
 
     info = headers if 'task' in headers else body
 
     after_publish_data = {
-        '_id':  info['id'],
+        '_id':  ObjectId(info['id']),
         '_state': 'PENDING',
         '_error': None,
         'submit_time': submit_time,
@@ -106,7 +100,7 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
         'classification': None
     }
 
-    db.tasks.insert_one(after_publish_data)
+    db.thugtasks.insert_one(after_publish_data)
 
 
 @after_task_publish.connect(sender='worker.geolocation.tasks.locate')
