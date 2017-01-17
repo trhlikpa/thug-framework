@@ -58,7 +58,7 @@ def get_paged_documents(collection, page, pagesize, sort, filter_fields=None, co
     count = query.count()
     from_t = (pagesize * (page - 1) + 1)
     to_t = (pagesize * (page - 1) + min(pagesize, count))
-    last = math.ceil(total / pagesize) + 1
+    last = math.ceil(total / pagesize)
 
     if from_t > total:
         from_t = None
