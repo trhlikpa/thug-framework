@@ -5,6 +5,7 @@ from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
 from worker.thug.tasks import analyze
 from celery.signals import after_task_publish
+from ast import literal_eval as make_tuple
 
 celery.autodiscover_tasks(['worker.crawler, worker.thug'])
 
@@ -18,12 +19,6 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
 
     if user_agent is None:
         user_agent = 'winxpie60'
-
-    job_args['java'] = job_args.get('java')
-    job_args['shockwave'] = job_args.get('shockwave')
-    job_args['adobepdf'] = job_args.get('adobepdf')
-    job_args['proxy'] = job_args.get('proxy')
-    job_args['allowed_domains'] = job_args.get('allowed_domains')
 
     if job_args.get('depth_limit') is None:
         job_args['depth_limit'] = 1
@@ -70,11 +65,17 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
 
     db.jobs.insert_one(json_data)
 
+    signatures = []
+
+    thug_signature = analyze.signature(time_limit=thug_time_limit)
+    signatures.append(thug_signature)
+
     if job_type == 'singleurl':
-        task_id = ObjectId()
-        analyze.apply_async(args=[url, str(job_id)], task_id=str(task_id), time_limit=thug_time_limit)
+        for sig in signatures:
+            task_id = ObjectId()
+            sig.apply_async(args=[str(job_id), url], task_id=str(task_id))
     else:
-        crawl.apply_async(task_id=str(job_id), time_limit=crawler_time_limit)
+        crawl.apply_async(args=[signatures], task_id=str(job_id), time_limit=crawler_time_limit)
 
     return str(job_id)
 
@@ -88,10 +89,10 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
     submit_time = str(datetime.utcnow().isoformat())
 
     info = headers if 'task' in headers else body
-    job_id = ObjectId(info['argsrepr'].split(',')[1].strip(' \"[]\''))
+    job_id = ObjectId(make_tuple(info['argsrepr'])[0])
 
     after_publish_data = {
-        '_id':  ObjectId(info['id']),
+        '_id': ObjectId(info['id']),
         '_state': 'PENDING',
         '_error': None,
         'submit_time': submit_time,

@@ -1,11 +1,12 @@
-import datetime
+from datetime import datetime
 from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
+from celery import signature
 
 
 @celery.task(bind=True)
-def crawl(self):
+def crawl(self, signatures=None):
     try:
         # Lazy load of task dependencies
         from scrapy.crawler import CrawlerProcess
@@ -35,7 +36,7 @@ def crawl(self):
         if user_agent is None:
             raise ValueError('User agent not found')
 
-        start_time = str(datetime.datetime.utcnow().isoformat())
+        start_time = str(datetime.utcnow().isoformat())
 
         initial_output_data = {
             '_state': 'STARTED',
@@ -45,7 +46,7 @@ def crawl(self):
 
         db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data})
 
-        urls = []
+        tasks = []
 
         # Scrapy process configuration
         process = CrawlerProcess({
@@ -70,22 +71,31 @@ def crawl(self):
         process.crawl(UrlSpider,
                       url=url,
                       allowed_domains=allowed_domains,
-                      callback=lambda link: urls.append(link.url)
+                      callback=lambda link: tasks.append(dict(url=link.url, thugtask_id=None, geolocation_id=None))
                       )
 
         process.start(True)
 
-        end_time = str(datetime.datetime.utcnow().isoformat())
+        end_time = str(datetime.utcnow().isoformat())
 
         success_output_data = {
-            'tasks': urls,
+            'tasks': tasks,
             'crawler_end_time': end_time
         }
 
         db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
 
+        if signatures is None:
+            return
+
+        for task in tasks:
+            for sig in signatures:
+                task_id = ObjectId()
+                sig = signature(sig)
+                sig.apply_async(args=[str(self.request.id), task['url']], task_id=str(task_id))
+
     except Exception as error:
-        end_time = str(datetime.datetime.utcnow().isoformat())
+        end_time = str(datetime.utcnow().isoformat())
 
         failure_output_data = {
             'tasks': [],

@@ -6,7 +6,7 @@ from worker.utils.exceptions import DatabaseRecordError
 
 
 @celery.task(bind=True)
-def analyze(self, url, job_id):
+def analyze(self, job_id, url):
     try:
         # Lazy load of task dependencies
         from thugapi import Thug
@@ -34,36 +34,54 @@ def analyze(self, url, job_id):
 
         start_time = str(datetime.utcnow().isoformat())
 
-        initial_output_data = {
+        tasks = job.get('tasks')
+
+        for task in tasks:
+            if task['url'] == url:
+                task['thugtask_id'] = ObjectId(self.request.id)
+
+        if len(tasks) < 1:
+            tasks = {
+                'url': url,
+                'thugtask_id': ObjectId(self.request.id)
+            }
+
+        job_initial_output_data = {
+            'tasks': tasks
+        }
+
+        if job_type == 'singleurl':
+            job_initial_output_data['_state'] = 'STARTED'
+            job_initial_output_data['start_time'] = start_time
+
+        db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': job_initial_output_data})
+
+        task_initial_output_data = {
             '_state': 'STARTED',
             'start_time': start_time,
         }
 
-        if job_type == 'singleurl':
-            db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': initial_output_data})
-
-        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data}, upsert=True)
+        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': task_initial_output_data}, upsert=True)
 
         thug = Thug()
 
         analysis_id = thug.analyze_url(
-                         url=url,
-                         useragent=user_agent,
-                         referer=args.get('referer'),
-                         java=args.get('java'),
-                         shockwave=args.get('shockwave'),
-                         adobepdf=args.get('adobepdf'),
-                         proxy=args.get('proxy'),
-                         dom_events=args.get('dom_events'),
-                         no_cache=args.get('no_cache', False),
-                         web_tracking=args.get('web_tracking', False),
-                         timeout=args.get('timeout'),
-                         url_classifiers=args.get('url_classifiers'),
-                         html_classifiers=args.get('html_classifiers'),
-                         js_classifiers=args.get('js_classifiers'),
-                         vb_classifiers=args.get('vb_classifiers'),
-                         sample_classifiers=args.get('sample_classifiers')
-                         )
+            url=url,
+            useragent=user_agent,
+            referer=args.get('referer'),
+            java=args.get('java'),
+            shockwave=args.get('shockwave'),
+            adobepdf=args.get('adobepdf'),
+            proxy=args.get('proxy'),
+            dom_events=args.get('dom_events'),
+            no_cache=args.get('no_cache', False),
+            web_tracking=args.get('web_tracking', False),
+            url_classifiers=args.get('url_classifiers'),
+            html_classifiers=args.get('html_classifiers'),
+            js_classifiers=args.get('js_classifiers'),
+            vb_classifiers=args.get('vb_classifiers'),
+            sample_classifiers=args.get('sample_classifiers')
+        )
 
         end_time = str(datetime.utcnow().isoformat())
 

@@ -37,7 +37,7 @@ class Thug(ThugAPI):
         ThugAPI.__init__(self)
 
     def analyze_url(self, url, useragent, referer, java, shockwave, adobepdf, proxy, dom_events, no_cache, web_tracking,
-                    timeout, url_classifiers, html_classifiers, js_classifiers, vb_classifiers, sample_classifiers):
+                    url_classifiers, html_classifiers, js_classifiers, vb_classifiers, sample_classifiers):
 
         if useragent:
             self.set_useragent(useragent)
@@ -73,9 +73,6 @@ class Thug(ThugAPI):
 
         if web_tracking:
             self.set_web_tracking()
-
-        if timeout:
-            self.set_timeout(timeout)
 
         if url_classifiers:
             for classifier in url_classifiers:
