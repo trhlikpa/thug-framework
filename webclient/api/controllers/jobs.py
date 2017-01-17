@@ -43,11 +43,20 @@ class JobList(Resource):
         parser.add_argument('submitter_id', type=str, help='Submitter ID')
 
         # Thug params
+        parser.add_argument('referer', type=str, help='HTML referer')
         parser.add_argument('java', type=str, help='Java plugin version')
         parser.add_argument('shockwave', type=str, help='Shockwave Flash plugin version')
         parser.add_argument('adobepdf', type=str, help='Adobe Acrobat Reader version')
         parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
         parser.add_argument('thug_time_limit', type=int, help='Time limit for thug execution')
+        parser.add_argument('dom_events', type=str, help='DOM event separated by comma')
+        parser.add_argument('no_cache', type=bool, help='Disable local web cache')
+        parser.add_argument('web_tracking', type=bool, help='Disable web tracking')
+        parser.add_argument('url_classifiers', type=list, location='json', help='URL classifiers')
+        parser.add_argument('html_classifiers', type=list, location='json', help='HTML classifiers')
+        parser.add_argument('js_classifiers', type=list, location='json', help='JS classifiers')
+        parser.add_argument('vb_classifiers', type=list, location='json', help='VB classifiers')
+        parser.add_argument('sample_classifiers', type=list, location='json', help='Sample classifiers')
 
         # Crawler params
         parser.add_argument('depth_limit', type=int, help='Webcrawler depth limit')
@@ -66,6 +75,7 @@ class JobList(Resource):
         try:
             job_id = create_job(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(json_util.dumps({'job': job_id}), mimetype='application/json')
@@ -86,6 +96,7 @@ class JobList(Resource):
         try:
             jobs = get_jobs(args)
         except Exception as error:
+            raise error
             abort(500, message='Error while processing request: %s' % str(error))
 
         response = Response(jobs, mimetype='application/json')

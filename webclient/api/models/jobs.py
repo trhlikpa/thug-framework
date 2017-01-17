@@ -106,10 +106,19 @@ def create_job(data):
 
     job_args = {x: data[x] if x in data else None for x in
                 {
+                    'referer',
                     'java',
                     'shockwave',
                     'adobepdf',
                     'proxy',
+                    'dom_events',
+                    'no_cache',
+                    'web_tracking',
+                    'url_classifiers',
+                    'html_classifiers',
+                    'js_classifiers',
+                    'vb_classifiers',
+                    'sample_classifiers',
                     'depth_limit',
                     'only_internal',
                     'allowed_domains',
