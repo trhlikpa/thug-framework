@@ -2,17 +2,21 @@ from datetime import datetime
 from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
-from worker.utils.exceptions import DatabaseRecordError, UserAgentNotFoundError, UrlNotFoundError
-from worker.utils.geolocation import geolocate
 
 
 @celery.task(bind=True)
 def analyze(self, job_id, url):
-    try:
-        # Lazy load of task dependencies
-        from thugapi import Thug
-        from worker.utils.useragents import get_useragent_string
+    # Lazy load of task dependencies
+    from thugapi import Thug
+    from worker.utils.netutils import check_url
+    from worker.utils.useragents import get_useragent_string
+    from worker.utils.exceptions import DatabaseRecordError, UserAgentNotFoundError
+    from worker.utils.exceptions import UrlNotFoundError, UrlNotReachedError
+    from worker.utils.geolocation import geolocate
 
+    output_data = dict()
+
+    try:
         job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
         if job is None:
@@ -20,6 +24,9 @@ def analyze(self, job_id, url):
 
         if url is None:
             raise UrlNotFoundError('URL is missing')
+
+        if not check_url(url):
+            raise UrlNotReachedError('Specified URL cannot be reached')
 
         args = job.get('args')
 
@@ -65,8 +72,6 @@ def analyze(self, job_id, url):
             sample_classifiers=args.get('sample_classifiers')
         )
 
-        end_time = str(datetime.utcnow().isoformat())
-
         exploits = db.exploits.find_one({'analysis_id': ObjectId(analysis_id)})
 
         classification = 'CLEAR'
@@ -74,27 +79,25 @@ def analyze(self, job_id, url):
         if exploits is not None:
             classification = 'INFECTED'
 
-        geolocation_id = geolocate(url)
-
-        success_output_data = {
+        output_data = {
             '_state': 'SUCCESSFUL',
-            'end_time': end_time,
             'analysis_id': ObjectId(analysis_id),
-            'classification': classification,
-            'geolocation_id': ObjectId(geolocation_id)
+            'classification': classification
         }
 
-        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
+        geolocation_id = geolocate(url)
+        output_data['geolocation_id'] = ObjectId(geolocation_id)
 
-    except (DatabaseRecordError, UserAgentNotFoundError, UrlNotFoundError) as error:
-        end_time = str(datetime.utcnow().isoformat())
-
-        failure_output_data = {
+    except (DatabaseRecordError, UserAgentNotFoundError, UrlNotFoundError, UrlNotReachedError, IOError) as error:
+        output_data = {
             '_state': 'FAILURE',
-            '_error': error.message,
-            'end_time': end_time,
-            'analysis_id': None,
+            '_error': str(error),
             'classification': 'SUSPICIOUS'
         }
 
-        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})
+    finally:
+        end_time = str(datetime.utcnow().isoformat())
+
+        output_data['end_time'] = end_time
+
+        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': output_data})

@@ -8,3 +8,11 @@ class UserAgentNotFoundError(Exception):
 
 class UrlNotFoundError(Exception):
     pass
+
+
+class UrlFormatError(Exception):
+    pass
+
+
+class UrlNotReachedError(Exception):
+    pass

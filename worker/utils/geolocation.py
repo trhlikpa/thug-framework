@@ -4,9 +4,11 @@ from worker import config
 
 
 def geolocate(url):
-    from geoip2.errors import GeoIP2Error, HTTPError
     from geoip2.database import Reader
     from geoip2.webservice import Client
+    from geoip2.errors import GeoIP2Error, HTTPError
+
+    geolocation_data = dict()
 
     try:
         ip = url_to_ip(url)
@@ -34,16 +36,22 @@ def geolocate(url):
             reader = Reader('/opt/project/worker/utils/geoloc_databases/GeoLite2-City.mmdb')
             response = reader.city(ip)
 
-        geolocation_data = dict()
-
         for name in dir(response):
             value = getattr(response, name)
             if not name.startswith('_') and not type(value) == dict:
                 geolocation_data[name] = value.__dict__
 
+    except (GeoIP2Error, HTTPError) as error:
+        geolocation_data = {
+            '_error': str(error)
+        }
+
+    finally:
+        duplicate = db.geolocation.find_one(geolocation_data)
+
+        if duplicate:
+            return duplicate['_id']
+
         geolocation_id = db.geolocation.insert_one(geolocation_data)
 
         return str(geolocation_id.inserted_id)
-
-    except (GeoIP2Error, HTTPError) as error:
-        raise error

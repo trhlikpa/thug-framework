@@ -3,19 +3,20 @@ from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
 from celery import signature
-from worker.utils.exceptions import DatabaseRecordError
 
 
 @celery.task(bind=True)
 def crawl(self, signatures=None):
-    try:
-        # Lazy load of task dependencies
-        from scrapy.crawler import CrawlerProcess
-        from scrapy.http.request import Request
-        from worker.crawler.urlspider import UrlSpider
-        from worker.utils.useragents import get_useragent_string
-        from worker.utils.netutils import get_top_level_domain
+    # Lazy load of task dependencies
+    from scrapy.crawler import CrawlerProcess
+    from worker.crawler.urlspider import UrlSpider
+    from worker.utils.useragents import get_useragent_string
+    from worker.utils.netutils import get_top_level_domain, check_url
+    from worker.utils.exceptions import DatabaseRecordError, UrlFormatError, UrlNotReachedError
 
+    output_data = dict()
+
+    try:
         job = db.jobs.find_one({'_id': ObjectId(self.request.id)})
 
         if job is None:
@@ -25,6 +26,9 @@ def crawl(self, signatures=None):
 
         if url is None:
             raise AttributeError('URL is missing')
+
+        if not check_url(url):
+            raise UrlNotReachedError('Specified URL cannot be reached')
 
         args = job.get('args')
 
@@ -87,20 +91,19 @@ def crawl(self, signatures=None):
                 sig = signature(sig)
                 sig.apply_async(args=[str(self.request.id), url], task_id=str(task_id))
 
-        success_output_data = {
+        output_data = {
             'crawler_end_time': end_time
         }
 
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
-
-    except (AttributeError, ValueError, DatabaseRecordError) as error:
+    except (AttributeError, ValueError, DatabaseRecordError, UrlFormatError, UrlNotReachedError, IOError) as error:
         end_time = str(datetime.utcnow().isoformat())
 
-        failure_output_data = {
+        output_data = {
             '_state': 'FAILURE',
-            '_error': error.message,
+            '_error': str(error),
             'end_time': end_time,
             'crawler_end_time': end_time
         }
 
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})
+    finally:
+        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': output_data})
