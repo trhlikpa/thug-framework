@@ -2,7 +2,7 @@ import socket
 from urlparse import urlparse
 
 
-def hostname_to_ip(url):
+def url_to_ip(url):
     netloc = urlparse(url).netloc
     dom = netloc.split('@')[-1].split(':')[0]
     return socket.gethostbyname(dom)

@@ -3,11 +3,11 @@ from bson import ObjectId
 from worker.dbcontext import db
 from worker.celeryapp import celery
 from worker.crawler.tasks import crawl
-from worker.thug.tasks import analyze
+from worker.analyzer.tasks import analyze
 from celery.signals import after_task_publish
 from ast import literal_eval as make_tuple
 
-celery.autodiscover_tasks(['worker.crawler, worker.thug'])
+celery.autodiscover_tasks(['worker.crawler, worker.analyzer'])
 
 
 def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
@@ -84,27 +84,27 @@ def revoke_job(job_id):
     pass
 
 
-@after_task_publish.connect(sender='worker.thug.tasks.analyze')
+@after_task_publish.connect(sender='worker.analyzer.tasks.analyze')
 def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
     submit_time = str(datetime.utcnow().isoformat())
 
     info = headers if 'task' in headers else body
     job_id = ObjectId(make_tuple(info['argsrepr'])[0])
+    url = make_tuple(info['argsrepr'])[1]
 
     after_publish_data = {
         '_id': ObjectId(info['id']),
         '_state': 'PENDING',
         '_error': None,
+        'url': url,
         'submit_time': submit_time,
         'start_time': None,
         'end_time': None,
         'job_id': job_id,
+        'analysis_id': None,
+        'geolocation_id': None,
         'classification': None
     }
 
-    db.thugtasks.insert_one(after_publish_data)
-
-
-@after_task_publish.connect(sender='worker.geolocation.tasks.locate')
-def geolocation_sent_handler(sender=None, headers=None, body=None, **kwargs):
-    pass
+    db.tasks.insert_one(after_publish_data)
+    db.jobs.update_one({'_id': job_id}, {'$push': {'tasks': ObjectId(info['id'])}})

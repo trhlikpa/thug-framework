@@ -2,7 +2,8 @@ from datetime import datetime
 from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
-from worker.utils.exceptions import DatabaseRecordError
+from worker.utils.exceptions import DatabaseRecordError, UserAgentNotFoundError, UrlNotFoundError
+from worker.utils.geolocation import geolocate
 
 
 @celery.task(bind=True)
@@ -18,7 +19,7 @@ def analyze(self, job_id, url):
             raise DatabaseRecordError('Job not found in database')
 
         if url is None:
-            raise AttributeError('URL is missing')
+            raise UrlNotFoundError('URL is missing')
 
         args = job.get('args')
 
@@ -28,40 +29,21 @@ def analyze(self, job_id, url):
         user_agent = job.get('useragent')
 
         if get_useragent_string(user_agent) is None:
-            raise ValueError('User agent not found')
+            raise UserAgentNotFoundError('User agent not found')
 
         job_type = job.get('type')
 
         start_time = str(datetime.utcnow().isoformat())
 
-        tasks = job.get('tasks')
-
-        for task in tasks:
-            if task['url'] == url:
-                task['thugtask_id'] = ObjectId(self.request.id)
-
-        if len(tasks) < 1:
-            tasks = {
-                'url': url,
-                'thugtask_id': ObjectId(self.request.id)
-            }
-
-        job_initial_output_data = {
-            'tasks': tasks
-        }
-
-        if job_type == 'singleurl':
-            job_initial_output_data['_state'] = 'STARTED'
-            job_initial_output_data['start_time'] = start_time
-
-        db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': job_initial_output_data})
-
-        task_initial_output_data = {
+        initial_output_data = {
             '_state': 'STARTED',
             'start_time': start_time,
         }
 
-        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': task_initial_output_data}, upsert=True)
+        if job_type == 'singleurl':
+            db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': initial_output_data})
+
+        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data}, upsert=True)
 
         thug = Thug()
 
@@ -92,16 +74,19 @@ def analyze(self, job_id, url):
         if exploits is not None:
             classification = 'INFECTED'
 
+        geolocation_id = geolocate(url)
+
         success_output_data = {
             '_state': 'SUCCESSFUL',
             'end_time': end_time,
             'analysis_id': ObjectId(analysis_id),
-            'classification': classification
+            'classification': classification,
+            'geolocation_id': ObjectId(geolocation_id)
         }
 
-        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
+        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
 
-    except Exception as error:
+    except (DatabaseRecordError, UserAgentNotFoundError, UrlNotFoundError) as error:
         end_time = str(datetime.utcnow().isoformat())
 
         failure_output_data = {
@@ -112,4 +97,4 @@ def analyze(self, job_id, url):
             'classification': 'SUSPICIOUS'
         }
 
-        db.thugtasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})
+        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': failure_output_data})

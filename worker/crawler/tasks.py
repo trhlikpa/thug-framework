@@ -3,6 +3,7 @@ from bson import ObjectId
 from worker.celeryapp import celery
 from worker.dbcontext import db
 from celery import signature
+from worker.utils.exceptions import DatabaseRecordError
 
 
 @celery.task(bind=True)
@@ -13,7 +14,6 @@ def crawl(self, signatures=None):
         from scrapy.http.request import Request
         from worker.crawler.urlspider import UrlSpider
         from worker.utils.useragents import get_useragent_string
-        from worker.utils.exceptions import DatabaseRecordError
         from worker.utils.netutils import get_top_level_domain
 
         job = db.jobs.find_one({'_id': ObjectId(self.request.id)})
@@ -46,7 +46,7 @@ def crawl(self, signatures=None):
 
         db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data})
 
-        tasks = []
+        urls = []
 
         # Scrapy process configuration
         process = CrawlerProcess({
@@ -71,34 +71,32 @@ def crawl(self, signatures=None):
         process.crawl(UrlSpider,
                       url=url,
                       allowed_domains=allowed_domains,
-                      callback=lambda link: tasks.append(dict(url=link.url, thugtask_id=None, geolocation_id=None))
+                      callback=lambda link: urls.append(link.url)
                       )
 
         process.start(True)
 
         end_time = str(datetime.utcnow().isoformat())
 
+        if signatures is None:
+            return
+
+        for url in urls:
+            for sig in signatures:
+                task_id = ObjectId()
+                sig = signature(sig)
+                sig.apply_async(args=[str(self.request.id), url], task_id=str(task_id))
+
         success_output_data = {
-            'tasks': tasks,
             'crawler_end_time': end_time
         }
 
         db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': success_output_data})
 
-        if signatures is None:
-            return
-
-        for task in tasks:
-            for sig in signatures:
-                task_id = ObjectId()
-                sig = signature(sig)
-                sig.apply_async(args=[str(self.request.id), task['url']], task_id=str(task_id))
-
-    except Exception as error:
+    except (AttributeError, ValueError, DatabaseRecordError) as error:
         end_time = str(datetime.utcnow().isoformat())
 
         failure_output_data = {
-            'tasks': [],
             '_state': 'FAILURE',
             '_error': error.message,
             'end_time': end_time,
