@@ -8,7 +8,7 @@ from worker import config
 __log__ = logging.getLogger('Thug')
 __log__.setLevel(logging.WARN)
 __cfgpath__ = '/etc/thug'
-__logpath__ = '/opt/project/worker/logs/'
+__logpath__ = '/etc/thug/logs/'
 
 
 class Thug(ThugAPI):

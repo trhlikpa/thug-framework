@@ -3,4 +3,4 @@ from pymongo import MongoClient
 
 # Connect to DB
 db_client = MongoClient(config.MONGODB_URL, connect=False)
-db = db_client[config.MONGODB_DATABASE]
+db = db_client['thug']

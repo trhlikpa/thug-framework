@@ -10,6 +10,7 @@ from ast import literal_eval as make_tuple
 celery.autodiscover_tasks(['worker.crawler, worker.analyzer'])
 
 
+@celery.task()
 def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
                 crawler_time_limit=None, thug_time_limit=None):
     submit_time = str(datetime.utcnow().isoformat())
@@ -80,12 +81,8 @@ def execute_job(url, user_agent, submitter_id, job_name, job_type, job_args,
     return str(job_id)
 
 
-def revoke_job(job_id):
-    pass
-
-
 @after_task_publish.connect(sender='worker.analyzer.tasks.analyze')
-def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
+def thug_sent_handler(headers=None, body=None, **kwargs):
     submit_time = str(datetime.utcnow().isoformat())
 
     info = headers if 'task' in headers else body
@@ -108,3 +105,7 @@ def thug_sent_handler(sender=None, headers=None, body=None, **kwargs):
 
     db.tasks.insert_one(after_publish_data)
     db.jobs.update_one({'_id': job_id}, {'$push': {'tasks': ObjectId(info['id'])}})
+
+
+def revoke_job(job_id):
+    pass
