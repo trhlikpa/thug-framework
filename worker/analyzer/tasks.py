@@ -47,9 +47,14 @@ def analyze(self, job_id, url):
             'start_time': start_time,
         }
 
-        if job_type == 'singleurl':
-            db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': initial_output_data})
+        job_output_data = {
+            '_current_url': url
+        }
 
+        if job_type == 'singleurl':
+            job_output_data.update(initial_output_data)
+
+        db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': job_output_data})
         db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data}, upsert=True)
 
         thug = Thug()

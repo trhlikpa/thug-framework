@@ -109,3 +109,7 @@ def thug_sent_handler(headers=None, body=None, **kwargs):
 
 def revoke_job(job_id):
     pass
+
+
+def revoke_task(task_id):
+    pass

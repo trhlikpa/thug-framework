@@ -101,4 +101,4 @@ class Thug(ThugAPI):
         self.log_event()
 
         mongo =  __log__.ThugLogging.modules['mongodb']
-        return str(mongo.get_url(url))
+        return str(mongo.analysis_id)
