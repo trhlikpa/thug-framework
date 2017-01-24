@@ -4,46 +4,6 @@ from webclient.api.models.schedules import get_schedule
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from worker.tasks import execute_job, revoke_job
 
-'''
-def classify_job(job):
-    from webclient.api.models.tasks import get_task
-    collums = {'_id': 1,
-               '_state': 1,
-               'error': 1,
-               'exploits': 1
-               }
-
-    tasks = list()
-    for task_id in job['tasks']:
-        if type(task_id) is ObjectId:
-            task_id = str(task_id)
-        else:
-            task_id = task_id['$oid']
-        task = get_task(task_id, collums)
-        if task['_state'] != 'SUCCESS' and task['_state'] != 'FAILURE':
-            return
-
-        tasks.append(task)
-
-    classification = 'CLEAR'
-
-    for task in tasks:
-        if task['_state'] == 'FAILURE':
-            if classification != 'INFECTED':
-                classification = 'SUSPICIOUS'
-        elif 'exploits' in task and len(task.get('exploits')) > 0:
-            classification = 'INFECTED'
-
-    if type(job['_id']) is not ObjectId:
-        tmp = job['_id']['$oid']
-    else:
-        tmp = str(job['_id'])
-
-    db.jobs.update_one({'_id': ObjectId(tmp)}, {'$set': {'classification': classification}})
-    job['classification'] = classification
-
-'''
-
 
 def get_jobs(args, shedule_id=None):
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
@@ -57,7 +17,12 @@ def get_jobs(args, shedule_id=None):
 
     if filter_arg is not None:
         tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+               {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
+               {'useragent': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
+               {'_state': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
+               {'type': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
+               {'classification': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+
         if filter_fields is not None:
             filter_fields['$or'] = tmp
         else:
@@ -128,20 +93,11 @@ def create_job(data):
                     'robotstxt_obey'
                 }}
 
-    job_id = execute_job(url=url,
-                         user_agent=user_agent,
-                         submitter_id=submitter_id,
-                         job_type=job_type,
-                         job_name=job_name,
-                         job_args=job_args,
-                         crawler_time_limit=crawler_time_limit,
-                         thug_time_limit=thug_time_limit
-                         )
+    job_id = execute_job.apply(args=[url, user_agent, submitter_id, job_name, job_type, job_args, crawler_time_limit,
+                                     thug_time_limit])
 
-    return job_id
+    return job_id.result
 
 
 def delete_job(job_id):
     revoke_job(job_id)
-
-    return job_id

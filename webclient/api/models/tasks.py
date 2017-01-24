@@ -3,11 +3,11 @@ from bson import ObjectId
 from webclient.dbcontext import db
 from webclient.api.models.jobs import get_job
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
-from worker.thug.tasks import analyze
+from worker.tasks import revoke_task
 
 
 def get_tasks(args, job_id=None):
-    page, pagesize, sort, filter_arg = parse_url_parameters(args)
+    page, pagesize, sort, _ = parse_url_parameters(args)
 
     filter_fields = None
 
@@ -16,31 +16,12 @@ def get_tasks(args, job_id=None):
         tasks_id = job['tasks']
         filter_fields = {'_id': {'$in': tasks_id}}
 
-    if filter_arg is not None:
-        tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
-        if filter_fields is not None:
-            filter_fields['$or'] = tmp
-        else:
-            filter_fields = {
-                '$or': tmp
-            }
-
-    collums = {'_id': 1,
-               '_state': 1,
-               'thug': 1,
-               'url': 1,
-               'error': 1,
-               'start_time': 1,
-               'end_time': 1,
-               'exploits': 1
-               }
-
     d = get_paged_documents(db.tasks,
                             page=page,
                             pagesize=pagesize,
                             sort=sort,
-                            collums=collums,
-                            filter_fields=filter_fields)
+                            filter_fields=filter_fields
+                            )
 
     json_string = json.dumps(d)
     return json_string
@@ -52,27 +33,40 @@ def get_task(task_id, collums=None):
     return task
 
 
-def create_task(data):
-    json_data = {
-        '_state': 'PENDING',
-        'start_time': None,
-        'end_time': None
-    }
-
-    oid = db.tasks.insert(json_data)
-
-    input_data = {x: data[x] if x in data else ''
-                  for x in ['useragent', 'url', 'java', 'shockwave', 'adobepdf', 'proxy']}
-
-    analyze.apply_async(args=[input_data], task_id=str(oid))
-    return str(oid)
-
-
 def delete_task(task_id):
-    analyze.AsyncResult(task_id).revoke()
-    result_db = db.tasks.delete_one({'_id': ObjectId(task_id)})
+    revoke_task(task_id)
 
-    if result_db.deleted_count > 0:
-        return True
 
-    return False
+def get_task_subresource(task_id, resource_name):
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+
+    if not task:
+        return None
+
+    analysis = db.analyses.find_one({'_id': ObjectId(task['analysis_id'])})
+
+    if resource_name == 'options':
+        resource = analysis
+    else:
+        resource = db[resource_name].find({'analysis_id': ObjectId(analysis['_id'])})
+
+    tmp_dict = list()
+
+    for entry in resource:
+        new_entry = dict(entry)
+
+        if entry.get('url_id'):
+            url = db.urls.find_one({'_id': ObjectId(entry['url_id'])})
+            new_entry['url'] = url['url']
+
+        if entry.get('source_id'):
+            url = db.urls.find_one({'_id': ObjectId(entry['source_id'])})
+            new_entry['source_url'] = url['url']
+
+        if entry.get('destination_id'):
+            url = db.urls.find_one({'_id': ObjectId(entry['destination_id'])})
+            new_entry['destination_url'] = url['url']
+
+        tmp_dict.append(new_entry)
+
+    return tmp_dict

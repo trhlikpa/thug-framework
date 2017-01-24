@@ -1,3 +1,4 @@
+import traceback
 import jwt
 from jwt.exceptions import InvalidTokenError
 from functools import wraps
@@ -39,5 +40,17 @@ def validate_user(func):
             abort(404, message='You need permision to access this resource')
 
         return func(*args, **kwargs)
+
+    return decorator
+
+
+def handle_errors(func):
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as error:
+            traceback.print_exc()
+            abort(500, message='Error while processing request: %s' % str(error))
 
     return decorator

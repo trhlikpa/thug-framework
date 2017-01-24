@@ -1,3 +1,4 @@
+import traceback
 from bson import json_util
 from flask_restful import Resource, abort, reqparse
 from flask import Response
@@ -20,6 +21,7 @@ class Login(Resource):
             token = validate_user(email, password)
             return {'token': token}
         except Exception as error:
+            traceback.print_exc()
             abort(400, message='Error while loging in: %s' % str(error))
 
 
@@ -43,6 +45,7 @@ class Register(Resource):
         try:
             user_id = create_user(name, email, password, password_confirm)
         except Exception as error:
+            traceback.print_exc()
             abort(400, message='Error while creating account: %s' % str(error))
 
         response = Response(json_util.dumps({'user': user_id}), mimetype='application/json')

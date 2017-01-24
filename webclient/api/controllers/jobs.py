@@ -1,36 +1,31 @@
 from bson import json_util
-from flask_restful import Resource, abort, reqparse
 from flask import Response
+from flask_restful import Resource, reqparse
 from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job
-from webclient.api.utils.decorators import login_required
+from webclient.api.utils.decorators import handle_errors
 
 
 class Job(Resource):
     @classmethod
+    @handle_errors
     def get(cls, job_id):
-        job = None
-        try:
-            job = get_job(job_id)
-        except Exception as error:
-            abort(500, message='Error while processing request: %s' % str(error))
-
+        job = get_job(job_id)
         response = Response(json_util.dumps({'job': job}), mimetype='application/json')
+
         return response
 
     @classmethod
+    @handle_errors
     def delete(cls, job_id):
-        result = None
-        try:
-            result = delete_job(job_id)
-        except Exception as error:
-            abort(500, message='Error while processing request: %s' % str(error))
+        delete_job(job_id)
+        response = Response(json_util.dumps({'job': None}), mimetype='application/json')
 
-        response = Response(json_util.dumps({'job': result}), mimetype='application/json')
         return response
 
 
 class JobList(Resource):
     @classmethod
+    @handle_errors
     def post(cls):
         parser = reqparse.RequestParser()
 
@@ -70,18 +65,13 @@ class JobList(Resource):
 
         args = parser.parse_args()
 
-        job_id = None
-
-        try:
-            job_id = create_job(args)
-        except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % str(error))
-
+        job_id = create_job(args)
         response = Response(json_util.dumps({'job': job_id}), mimetype='application/json')
+
         return response
 
     @classmethod
+    @handle_errors
     def get(cls):
         parser = reqparse.RequestParser()
 
@@ -92,14 +82,9 @@ class JobList(Resource):
 
         args = parser.parse_args()
 
-        jobs = None
-        try:
-            jobs = get_jobs(args)
-        except Exception as error:
-            raise error
-            abort(500, message='Error while processing request: %s' % str(error))
-
+        jobs = get_jobs(args)
         response = Response(jobs, mimetype='application/json')
+
         return response
 
 
@@ -115,11 +100,7 @@ class JobsBySchedule(Resource):
 
         args = parser.parse_args()
 
-        jobs = None
-        try:
-            jobs = get_jobs(args, schedule_id)
-        except Exception as error:
-            abort(500, message='Error while processing request: %s' % str(error))
-
+        jobs = get_jobs(args, schedule_id)
         response = Response(jobs, mimetype='application/json')
+
         return response
