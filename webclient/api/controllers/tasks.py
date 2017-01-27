@@ -157,3 +157,10 @@ class Peepdf(Resource):
     @handle_errors
     def get(cls, task_id):
         return get_subresource(task_id, 'peepdf')
+
+
+class Geolocation(Resource):
+    @classmethod
+    @handle_errors
+    def get(cls, task_id):
+        return get_subresource(task_id, 'geolocation')

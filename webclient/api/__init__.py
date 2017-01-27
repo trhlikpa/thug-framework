@@ -23,10 +23,11 @@ api.add_resource(tasks.Virustotal, '/tasks/<task_id>/virustotal/')
 api.add_resource(tasks.Honeyagent, '/tasks/<task_id>/honeyagent/')
 api.add_resource(tasks.Androguard, '/tasks/<task_id>/androguard/')
 api.add_resource(tasks.Peepdf, '/tasks/<task_id>/peepdf/')
+api.add_resource(tasks.Geolocation, '/tasks/<task_id>/geolocation/')
 
 api.add_resource(jobs.JobList, '/jobs/')
 api.add_resource(jobs.Job, '/jobs/<job_id>')
-api.add_resource(jobs.JobsBySchedule, '/schedules/<schedule_id>/jobs/')
+# api.add_resource(jobs.JobsBySchedule, '/schedules/<schedule_id>/jobs/')
 
 api.add_resource(schedules.ScheduleList, '/schedules/')
 api.add_resource(schedules.Schedule, '/schedules/<schedule_id>')

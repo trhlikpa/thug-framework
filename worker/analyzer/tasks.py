@@ -82,7 +82,7 @@ def analyze(self, job_id, url):
         classification = 'CLEAR'
 
         if exploits is not None:
-            classification = 'INFECTED'
+            classification = 'MALICIOUS'
 
         output_data = {
             '_state': 'SUCCESSFUL',

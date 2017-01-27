@@ -1,21 +1,17 @@
 import json
 from webclient.dbcontext import db
-from webclient.api.models.schedules import get_schedule
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
+from webclient.api.utils.celeryutils import normalize_job_states
 from worker.tasks import execute_job, revoke_job
 
 
-def get_jobs(args, shedule_id=None):
+def get_jobs(args):
+    normalize_job_states()
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
     filter_fields = None
 
-    if shedule_id is not None:
-        schedule = get_schedule(shedule_id)
-        jobs_id = schedule['previous_runs']
-        filter_fields = {'_id': {'$in': jobs_id}}
-
-    if filter_arg is not None:
+    if filter_arg:
         tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
                {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
                {'useragent': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
@@ -23,12 +19,7 @@ def get_jobs(args, shedule_id=None):
                {'type': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
                {'classification': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
 
-        if filter_fields is not None:
-            filter_fields['$or'] = tmp
-        else:
-            filter_fields = {
-                '$or': tmp
-            }
+        filter_fields['$or'] = tmp
 
     d = get_paged_documents(db.jobs,
                             page=page,
@@ -36,26 +27,14 @@ def get_jobs(args, shedule_id=None):
                             sort=sort,
                             collums=None,
                             filter_fields=filter_fields)
-    '''
-    for entry in d['data']:
-        if entry['_state'] == 'SUCCESS' and not entry.get('classification'):
-            classify_job(entry)
-    '''
 
     json_string = json.dumps(d)
     return json_string
 
 
 def get_job(job_id):
+    normalize_job_states()
     job = db.jobs.find_one({'_id': job_id})
-
-    if job is None:
-        return None
-
-    '''
-    if job['_state'] == 'SUCCESS' and not job.get('classification'):
-        classify_job(job)
-    '''
 
     return job
 

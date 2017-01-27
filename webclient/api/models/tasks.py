@@ -3,10 +3,12 @@ from bson import ObjectId
 from webclient.dbcontext import db
 from webclient.api.models.jobs import get_job
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
+from webclient.api.utils.celeryutils import normalize_task_states
 from worker.tasks import revoke_task
 
 
 def get_tasks(args, job_id=None):
+    normalize_task_states()
     page, pagesize, sort, _ = parse_url_parameters(args)
 
     filter_fields = None
@@ -27,8 +29,9 @@ def get_tasks(args, job_id=None):
     return json_string
 
 
-def get_task(task_id, collums=None):
-    task = db.tasks.find_one({'_id': ObjectId(task_id)}, collums is None if {} else collums)
+def get_task(task_id):
+    normalize_task_states()
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     return task
 

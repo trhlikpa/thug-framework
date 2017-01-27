@@ -86,21 +86,3 @@ class JobList(Resource):
         response = Response(jobs, mimetype='application/json')
 
         return response
-
-
-class JobsBySchedule(Resource):
-    @classmethod
-    def get(cls, schedule_id):
-        parser = reqparse.RequestParser()
-
-        parser.add_argument('sort', type=str, location='args')
-        parser.add_argument('page', type=int, location='args')
-        parser.add_argument('per_page', type=int, location='args')
-        parser.add_argument('filter', type=str, location='args')
-
-        args = parser.parse_args()
-
-        jobs = get_jobs(args, schedule_id)
-        response = Response(jobs, mimetype='application/json')
-
-        return response
