@@ -40,40 +40,72 @@ def get_job(job_id):
 
 
 def create_job(data):
-    job_type = data.get('type')
-    job_name = data.get('name')
-    submitter_id = data.get('submitter_id')
-    crawler_time_limit = data.get('crawler_time_limit')
-    thug_time_limit = data.get('thug_time_limit')
     url = data.get('url')
-    user_agent = data.get('useragent')
 
-    job_args = {x: data[x] if x in data else None for x in
-                {
-                    'referer',
-                    'java',
-                    'shockwave',
-                    'adobepdf',
-                    'proxy',
-                    'dom_events',
-                    'no_cache',
-                    'web_tracking',
-                    'url_classifiers',
-                    'html_classifiers',
-                    'js_classifiers',
-                    'vb_classifiers',
-                    'sample_classifiers',
-                    'depth_limit',
-                    'only_internal',
-                    'allowed_domains',
-                    'download_delay',
-                    'randomize_download_delay',
-                    'redirect_max_times',
-                    'robotstxt_obey'
-                }}
+    if url is None:
+        raise AttributeError('URL is missing')
 
-    job_id = execute_job.apply(args=[url, user_agent, submitter_id, job_name, job_type, job_args, crawler_time_limit,
-                                     thug_time_limit])
+    job_name = data.get('name')
+
+    if job_name is None:
+        raise AttributeError('Name is missing')
+
+    submitter_id = data.get('submitter_id')
+    '''
+    if submitter_id is None:
+        raise AttributeError('Submitter id is missing')
+    '''
+
+    job_type = data.get('type', 'singleurl')
+    crawler_time_limit = data.get('crawler_time_limit') or 600
+    thug_time_limit = data.get('thug_time_limit') or 600
+    user_agent = data.get('useragent', 'winxpie60')
+
+    args = {
+        'referer': data.get('referer'),
+        'java': data.get('java'),
+        'shockwave': data.get('shockwave'),
+        'adobepdf': data.get('adobepdf'),
+        'proxy': data.get('proxy'),
+        'dom_events': data.get('dom_events'),
+        'no_cache': data.get('no_cache') or False,
+        'web_tracking': data.get('web_tracking') or False,
+        'url_classifiers': data.get('url_classifiers'),
+        'html_classifiers': data.get('html_classifiers'),
+        'js_classifiers': data.get('js_classifiers'),
+        'vb_classifiers': data.get('vb_classifiers'),
+        'sample_classifiers': data.get('sample_classifiers'),
+        'depth_limit': data.get('depth_limit') or 1,
+        'only_internal': data.get('only_internal') or True,
+        'allowed_domains': data.get('allowed_domains'),
+        'download_delay': data.get('download_delay') or 0,
+        'randomize_download_delay': data.get('randomize_download_delay') or False,
+        'redirect_max_times': data.get('redirect_max_times') or 30,
+        'robotstxt_obey': data.get('robotstxt_obey') or False
+    }
+
+    job_data = {
+        '_state': 'PENDING',
+        '_current_url': None,
+        '_error': None,
+        'type': job_type,
+        'name': job_name,
+        'url': url,
+        'useragent': user_agent,
+        'classification': None,
+        'start_time': None,
+        'end_time': None,
+        'crawler_start_time': None,
+        'crawler_end_time': None,
+        'crawler_time_limit': crawler_time_limit,
+        'thug_time_limit': thug_time_limit,
+        'submitter_id': submitter_id,
+        'schedule_id': None,
+        'args': args,
+        'tasks': []
+    }
+
+    job_id = execute_job.apply(args=[job_data])
 
     return job_id.result
 

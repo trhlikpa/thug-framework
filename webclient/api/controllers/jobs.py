@@ -35,7 +35,6 @@ class JobList(Resource):
         parser.add_argument('useragent', type=str, help='Browser personality', required=True)
         parser.add_argument('type', type=str, help='Job type (singleurl or extensive)', required=True,
                             choices=['singleurl', 'extensive'])
-        parser.add_argument('submitter_id', type=str, help='Submitter ID')
 
         # Thug params
         parser.add_argument('referer', type=str, help='HTML referer')
