@@ -33,7 +33,7 @@ def normalize_job_states():
     for entry in jobs:
         crawler_time_limit = entry['crawler_time_limit'] or 600
 
-        if not entry['crawler_end_time']:
+        if not entry['crawler_end_time'] and entry['crawler_start_time']:
             start_time = dateutil.parser.parse(entry['crawler_start_time'])
             now_time = datetime.utcnow()
             limit_time = start_time + timedelta(seconds=crawler_time_limit)

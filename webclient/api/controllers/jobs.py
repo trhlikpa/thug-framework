@@ -36,6 +36,9 @@ class JobList(Resource):
         parser.add_argument('type', type=str, help='Job type (singleurl or extensive)', required=True,
                             choices=['singleurl', 'extensive'])
 
+        # Schedule params
+        parser.add_argument('eta', type=str, help='Estimated time of arival in ISO 8601 string')
+
         # Thug params
         parser.add_argument('referer', type=str, help='HTML referer')
         parser.add_argument('java', type=str, help='Java plugin version')

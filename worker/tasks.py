@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil import parser
 from bson import ObjectId
 from worker.dbcontext import db
 from worker.celeryapp import celery
@@ -21,9 +22,14 @@ def execute_job(data):
 
     db.jobs.insert_one(data)
 
+    eta = None
+
+    if data['eta']:
+        eta = parser.parse(data['eta'])
+
     signatures = []
 
-    thug_signature = analyze.signature(time_limit=data['thug_time_limit'])
+    thug_signature = analyze.signature(time_limit=data['thug_time_limit'], eta=eta)
     signatures.append(thug_signature)
 
     if data['type'] == 'singleurl':
@@ -31,7 +37,7 @@ def execute_job(data):
             task_id = ObjectId()
             sig.apply_async(args=[str(job_id), data['url']], task_id=str(task_id))
     else:
-        crawl.apply_async(args=[signatures], task_id=str(job_id), time_limit=data['crawler_time_limit'])
+        crawl.apply_async(args=[signatures], task_id=str(job_id), time_limit=data['crawler_time_limit'], eta=eta)
 
     return str(job_id)
 

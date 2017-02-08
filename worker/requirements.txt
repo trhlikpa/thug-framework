@@ -3,3 +3,4 @@ redis
 pymongo
 geoip2
 scrapy
+python-dateutil

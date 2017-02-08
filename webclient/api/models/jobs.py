@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from webclient.dbcontext import db
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.api.utils.celeryutils import normalize_job_states
@@ -57,6 +58,7 @@ def create_job(data):
     '''
 
     job_type = data.get('type', 'singleurl')
+    eta = data.get('eta')
     crawler_time_limit = data.get('crawler_time_limit') or 600
     thug_time_limit = data.get('thug_time_limit') or 600
     user_agent = data.get('useragent', 'winxpie60')
@@ -99,6 +101,7 @@ def create_job(data):
         'crawler_end_time': None,
         'crawler_time_limit': crawler_time_limit,
         'thug_time_limit': thug_time_limit,
+        'eta': eta,
         'submitter_id': submitter_id,
         'schedule_id': None,
         'args': args,
