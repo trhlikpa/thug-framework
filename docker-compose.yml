@@ -27,5 +27,14 @@ services:
     volumes:
       - .:/opt/project
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    entrypoint: ["/entrypoint.sh"]
+    command: ["celery", "-l", "DEBUG", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.MongoScheduler", "beat"]
+    volumes:
+      - .:/opt/project
+
 
 

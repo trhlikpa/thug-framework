@@ -7,20 +7,11 @@ from bson.objectid import ObjectId
 def get_schedules(args):
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
-    filter_fields = None
-
-    if filter_arg is not None:
-        tmp = [{'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
-        filter_fields = {
-            '$or': tmp
-        }
-
     d = get_paged_documents(db.schedules,
                             page=page,
                             pagesize=pagesize,
                             sort=sort,
-                            collums=None,
-                            filter_fields=filter_fields)
+                            collums=None)
 
     json_string = json.dumps(d)
     return json_string
@@ -32,46 +23,28 @@ def get_schedule(schedule_id):
     return schedule
 
 
-def create_schedule(data):
-    input_data = {x: data[x] if x in data else '' for x in
-                  ['name', 'crontab', 'args', 'kwargs', 'task', 'submitter']}
+def create_schedule(task, name, max_run_count, run_after, cron=None, interval=None, args=None, kwargs=None, opt=None):
+    schedule_id = ObjectId()
 
-    if 'url' not in input_data['args'][0] or 'type' not in input_data['args'][0] or 'useragent' not in \
-            input_data['args'][0]:
-        raise ValueError('Job parameters error during schedule creation')
-
-    oid = ObjectId()
-
-    input_data['args'][0]['schedule_id'] = str(oid)
-    input_data['args'][0]['start_time'] = None
-    input_data['args'][0]['end_time'] = None
-    input_data['args'][0]['classification'] = None
-    input_data['args'][0]['submitter'] = input_data['submitter']
-
-    if 'java' not in input_data['args'][0]:
-        input_data['args'][0]['java'] = None
-
-    if 'shockwave' not in input_data['args'][0]:
-        input_data['args'][0]['shockwave'] = None
-
-    if 'adobepdf' not in input_data['args'][0]:
-        input_data['args'][0]['adobepdf'] = None
-
-    if 'proxy' not in input_data['args'][0]:
-        input_data['args'][0]['proxy'] = None
-
-    json_data = {
-        '_id': oid,
-        '_cls': 'PeriodicTask',
+    schedule = {
+        '_id': schedule_id,
+        'task': task,
+        'name': name,
         'enabled': True,
-        'previous_runs': []
+        'args': args,
+        'kwargs': kwargs,
+        'max_run_count': max_run_count,
+        'run_after': run_after,
+        'total_run_count': 0,
+        'last_run_at': None,
+        'cron': cron,
+        'interval': interval,
+        'options': opt
     }
 
-    json_data.update(input_data)
+    db.schedules.insert_one(schedule)
 
-    db.schedules.insert(json_data)
-
-    return str(oid)
+    return schedule_id
 
 
 def delete_schedule(schedule_id):

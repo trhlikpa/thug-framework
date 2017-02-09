@@ -1,2 +1,4 @@
 celery
 redis
+pymongo
+python-dateutil

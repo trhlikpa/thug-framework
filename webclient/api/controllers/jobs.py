@@ -37,7 +37,10 @@ class JobList(Resource):
                             choices=['singleurl', 'extensive'])
 
         # Schedule params
-        parser.add_argument('eta', type=str, help='Estimated time of arival in ISO 8601 string')
+        parser.add_argument('eta', type=str, help='Estimated time of arival; ISO 8601 string format')
+        parser.add_argument('max_run_count', type=str, help='Number of periodic task execution')
+        parser.add_argument('cron', type=dict, help='Schedule in cron format')
+        parser.add_argument('interval', type=dict, help='Schedule defined as intervals')
 
         # Thug params
         parser.add_argument('referer', type=str, help='HTML referer')

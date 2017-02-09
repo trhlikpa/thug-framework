@@ -1,31 +1,38 @@
-# SCHEDULER IMAGE BASED ON ALPINE
-FROM alpine:latest
+# SCHEDULER IMAGE
+FROM ubuntu:14.04
+
+USER root
 
 # INSTALL NON PYTHON DEPENDENCIES
-RUN apk update && \
-	apk upgrade && \
-    apk add python && \
-    apk add py-pip && \
-    apk add python-dev && \
-    apk add bash
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+    build-essential \
+    python-dev \
+    python-setuptools \
+    python-pip && \
+  rm -rf /var/lib/apt/lists/*
+
 
 # CREATE FOLDER STRUCTURE
 COPY ./scheduler/entrypoint.sh /
 COPY ./scheduler /opt/project/scheduler/
-
-# INSTALL PYTHON DEPENDENCIES
-RUN cd /opt/project/scheduler && \
-    pip install -r requirements.txt
+COPY ./config.py /opt/project/scheduler/
 
 # CREATE USER, ENV_PATHS
-ENV PYTHONPATH /opt/project/
-WORKDIR /opt/project/
-RUN addgroup -S scheduler && adduser -S -G scheduler scheduler
 RUN chmod +x /entrypoint.sh
+RUN adduser --disabled-password --gecos '' scheduler
 
-# COPY CONFIG
-COPY ./config.py /opt/project/scheduler/config.py
+ENV PYTHONPATH /opt/project/
+WORKDIR /opt/project/scheduler/
+
+# INSTALL PYTHON DEPENDENCIES
+RUN pip install -r requirements.txt
 
 # CLEAN UP
-RUN apk del python-dev py-pip
-RUN rm -rf /var/cache/apk/*
+RUN apt-get -y remove \
+      build-essential \
+      python-dev \
+      python-setuptools \
+      python-pip
+
+USER scheduler

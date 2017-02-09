@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from webclient.api.models.schedules import create_schedule
 from webclient.dbcontext import db
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.api.utils.celeryutils import normalize_job_states
@@ -43,12 +43,12 @@ def get_job(job_id):
 def create_job(data):
     url = data.get('url')
 
-    if url is None:
+    if not url:
         raise AttributeError('URL is missing')
 
     job_name = data.get('name')
 
-    if job_name is None:
+    if not job_name:
         raise AttributeError('Name is missing')
 
     submitter_id = data.get('submitter_id')
@@ -58,10 +58,14 @@ def create_job(data):
     '''
 
     job_type = data.get('type', 'singleurl')
-    eta = data.get('eta')
     crawler_time_limit = data.get('crawler_time_limit') or 600
     thug_time_limit = data.get('thug_time_limit') or 600
     user_agent = data.get('useragent', 'winxpie60')
+
+    eta = data.get('eta')
+    cron = data.get('cron')
+    interval = data.get('interval')
+    max_run_count = data.get('max_run_count') or 100
 
     args = {
         'referer': data.get('referer'),
@@ -108,8 +112,12 @@ def create_job(data):
         'tasks': []
     }
 
-    job_id = execute_job.apply(args=[job_data])
+    if cron or interval:
+        create_schedule(task='worker.tasks.execute_job', name=job_name, args=[job_data],
+                        max_run_count=max_run_count, run_after=eta, cron=cron, interval=interval)
+        return None
 
+    job_id = execute_job.apply(args=[job_data])
     return job_id.result
 
 
