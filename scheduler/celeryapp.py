@@ -7,13 +7,13 @@ class Config:
     def __init__(self):
         pass
 
-    enable_utc = True
-    accept_content = ['application/json']
-    task_serializer = 'json'
-    result_serializer = 'json'
-    worker_max_tasks_per_child = 1
-    broker_url = config.BROKER_URL
-    result_backend = config.BROKER_URL
+    CELERY_ENABLE_UTC = True
+    CELERY_ACCEPT_CONTENT = ['application/json']
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+    CELERYD_MAX_TASKS_PER_CHILD = 1
+    BROKER_URL = config.BROKER_URL
+    CELERY_RESULT_BACKEND = config.BROKER_URL
 
 
 # Start celery and connect to redis

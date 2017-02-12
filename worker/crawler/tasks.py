@@ -40,7 +40,7 @@ def crawl(self, signatures=None):
         if user_agent is None:
             raise ValueError('User agent not found')
 
-        start_time = str(datetime.utcnow().isoformat())
+        start_time = datetime.utcnow().isoformat()
 
         initial_output_data = {
             '_state': 'STARTED',
@@ -80,7 +80,7 @@ def crawl(self, signatures=None):
 
         process.start(True)
 
-        end_time = str(datetime.utcnow().isoformat())
+        end_time = datetime.utcnow().isoformat()
 
         if signatures is None:
             return
@@ -96,7 +96,7 @@ def crawl(self, signatures=None):
         }
 
     except (AttributeError, ValueError, DatabaseRecordError, UrlFormatError, UrlNotReachedError, IOError) as error:
-        end_time = str(datetime.utcnow().isoformat())
+        end_time = datetime.utcnow().isoformat()
 
         output_data = {
             '_state': 'FAILURE',

@@ -40,7 +40,7 @@ def analyze(self, job_id, url):
 
         job_type = job.get('type')
 
-        start_time = str(datetime.utcnow().isoformat())
+        start_time = datetime.utcnow().isoformat()
 
         initial_output_data = {
             '_state': 'STARTED',
@@ -101,7 +101,7 @@ def analyze(self, job_id, url):
         }
 
     finally:
-        end_time = str(datetime.utcnow().isoformat())
+        end_time = datetime.utcnow().isoformat()
 
         output_data['end_time'] = end_time
 

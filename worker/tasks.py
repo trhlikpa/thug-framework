@@ -13,7 +13,7 @@ celery.autodiscover_tasks(['worker.crawler, worker.analyzer'])
 
 @celery.task()
 def execute_job(data):
-    submit_time = str(datetime.utcnow().isoformat())
+    submit_time = datetime.utcnow().isoformat()
 
     job_id = ObjectId()
 
@@ -44,7 +44,7 @@ def execute_job(data):
 
 @after_task_publish.connect(sender='worker.analyzer.tasks.analyze')
 def thug_sent_handler(headers=None, body=None, **kwargs):
-    submit_time = str(datetime.utcnow().isoformat())
+    submit_time = datetime.utcnow().isoformat()
 
     info = headers if 'task' in headers else body
     job_id = ObjectId(make_tuple(info['argsrepr'])[0])

@@ -26,8 +26,11 @@ def get_schedule(schedule_id):
 def create_schedule(task, name, max_run_count, run_after, cron=None, interval=None, args=None, kwargs=None, opt=None):
     schedule_id = ObjectId()
 
+    args[0]['schedule_id'] = str(schedule_id)
+
     schedule = {
         '_id': schedule_id,
+        "_cls": 'PeriodicTask',
         'task': task,
         'name': name,
         'enabled': True,
