@@ -30,7 +30,6 @@ def create_schedule(task, name, max_run_count, run_after, cron=None, interval=No
 
     schedule = {
         '_id': schedule_id,
-        "_cls": 'PeriodicTask',
         'task': task,
         'name': name,
         'enabled': True,

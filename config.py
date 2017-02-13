@@ -4,7 +4,6 @@ SECRET_KEY = 'secret-key'
 THREADS_PER_PAGE = 2
 
 BROKER_URL = 'redis://redis:6379'
-
 MONGODB_URL = 'mongodb://db:27017'
 
 GEOIP2_WEB_SERVICE_USER_ID = None
