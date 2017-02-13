@@ -40,6 +40,17 @@ def delete_task(task_id):
     revoke_task(task_id)
 
 
+def get_task_geolocation(task_id):
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+
+    if not task:
+        return None
+
+    geolocation = db.geolocation.find_one({'_id': ObjectId(task['geolocation_id'])})
+
+    return geolocation
+
+
 def get_task_subresource(task_id, resource_name):
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 

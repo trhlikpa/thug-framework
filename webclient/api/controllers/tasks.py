@@ -1,7 +1,7 @@
 from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
-from webclient.api.models.tasks import get_task, delete_task, get_tasks, get_task_subresource
+from webclient.api.models.tasks import get_task, delete_task, get_tasks, get_task_subresource, get_task_geolocation
 from webclient.api.utils.decorators import handle_errors
 
 
@@ -163,4 +163,4 @@ class Geolocation(Resource):
     @classmethod
     @handle_errors
     def get(cls, task_id):
-        return get_subresource(task_id, 'geolocation')
+        return get_task_geolocation(task_id)
