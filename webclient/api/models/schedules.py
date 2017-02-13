@@ -41,7 +41,8 @@ def create_schedule(task, name, max_run_count, run_after, cron=None, interval=No
         'last_run_at': None,
         'cron': cron,
         'interval': interval,
-        'options': opt
+        'options': opt,
+        'previous_runs': []
     }
 
     db.schedules.insert_one(schedule)

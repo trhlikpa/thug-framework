@@ -1,4 +1,5 @@
 import json
+from bson import ObjectId
 from webclient.api.models.schedules import create_schedule
 from webclient.dbcontext import db
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
@@ -35,7 +36,7 @@ def get_jobs(args):
 
 def get_job(job_id):
     normalize_job_states()
-    job = db.jobs.find_one({'_id': job_id})
+    job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
     return job
 
@@ -117,7 +118,7 @@ def create_job(data):
                         max_run_count=max_run_count, run_after=eta, cron=cron, interval=interval)
         return None
 
-    job_id = execute_job.apply(args=[job_data])
+    job_id = execute_job.apply(args=[job_data], task_id=str(ObjectId()))
     return job_id.result
 
 

@@ -11,14 +11,19 @@ from ast import literal_eval as make_tuple
 celery.autodiscover_tasks(['worker.crawler, worker.analyzer'])
 
 
-@celery.task()
-def execute_job(data):
+@celery.task(bind=True)
+def execute_job(self, data):
     submit_time = datetime.utcnow().isoformat()
 
-    job_id = ObjectId()
+    job_id = self.request.id
+    crawl_id = ObjectId()
 
-    data['_id'] = job_id
+    data['_id'] = ObjectId(job_id)
+    data['_crawl_id'] = crawl_id
     data['submit_time'] = submit_time
+
+    if data['schedule_id']:
+        data['schedule_id'] = ObjectId(data['schedule_id'])
 
     db.jobs.insert_one(data)
 
@@ -34,12 +39,13 @@ def execute_job(data):
 
     if data['type'] == 'singleurl':
         for sig in signatures:
-            task_id = ObjectId()
-            sig.apply_async(args=[str(job_id), data['url']], task_id=str(task_id))
+            task_id = str(ObjectId())
+            sig.apply_async(args=[job_id, data['url']], task_id=task_id)
     else:
-        crawl.apply_async(args=[signatures], task_id=str(job_id), time_limit=data['crawler_time_limit'], eta=eta)
+        crawl.apply_async(args=[job_id, signatures], task_id=str(crawl_id),
+                          time_limit=data['crawler_time_limit'], eta=eta)
 
-    return str(job_id)
+    return job_id
 
 
 @after_task_publish.connect(sender='worker.analyzer.tasks.analyze')

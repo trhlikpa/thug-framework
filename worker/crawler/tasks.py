@@ -6,7 +6,7 @@ from celery import signature
 
 
 @celery.task(bind=True)
-def crawl(self, signatures=None):
+def crawl(self, job_id, signatures=None):
     # Lazy load of task dependencies
     from scrapy.crawler import CrawlerProcess
     from worker.crawler.urlspider import UrlSpider
@@ -17,7 +17,7 @@ def crawl(self, signatures=None):
     output_data = dict()
 
     try:
-        job = db.jobs.find_one({'_id': ObjectId(self.request.id)})
+        job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
         if job is None:
             raise DatabaseRecordError('Job not found in database')
@@ -48,7 +48,7 @@ def crawl(self, signatures=None):
             'crawler_start_time': start_time
         }
 
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data})
+        db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': initial_output_data})
 
         urls = []
 
@@ -89,7 +89,7 @@ def crawl(self, signatures=None):
             for sig in signatures:
                 task_id = ObjectId()
                 sig = signature(sig)
-                sig.apply_async(args=[str(self.request.id), url], task_id=str(task_id))
+                sig.apply_async(args=[str(job_id), url], task_id=str(task_id))
 
         output_data = {
             'crawler_end_time': end_time
@@ -106,4 +106,4 @@ def crawl(self, signatures=None):
         }
 
     finally:
-        db.jobs.update_one({'_id': ObjectId(self.request.id)}, {'$set': output_data})
+        db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': output_data})

@@ -1,7 +1,9 @@
+import sys
 from datetime import datetime, timedelta
+from billiard.five import reraise
 from bson import ObjectId
 from celery import current_app
-from celery.beat import Scheduler, ScheduleEntry
+from celery.beat import Scheduler, ScheduleEntry, SchedulingError
 from celery.utils.log import get_logger
 from dateutil import parser
 from scheduler.celeryapp import celery
@@ -71,7 +73,6 @@ class MongoEntry(ScheduleEntry):
     next = __next__  # for 2to3
 
     def is_due(self):
-        debug(self.id)
         if not self.model['enabled']:
             return False, 5.0  # 5 second delay for re-enable.
 
@@ -89,8 +90,6 @@ class MongoEntry(ScheduleEntry):
             'total_run_count': self.model['total_run_count']
         }
 
-        debug('MongoScheduler: saving: ' + str(self.model['total_run_count']))
-
         db.schedules.update_one({'_id': ObjectId(self.id)}, {'$set': updated_data})
 
 
@@ -104,6 +103,36 @@ class MongoScheduler(Scheduler):
         self._schedule = {}
         self._last_updated = None
         Scheduler.__init__(self, *args, **kwargs)
+
+    def send_task(self, *args, **kwargs):
+        return self.app.send_task(task_id=str(ObjectId()), *args, **kwargs)
+
+    def apply_async(self, entry, publisher=None, **kwargs):
+        # Update timestamps and run counts before we actually execute,
+        # so we have that done if an exception is raised (doesn't schedule
+        # forever.)
+        entry = self.reserve(entry)
+        task = self.app.tasks.get(entry.task)
+
+        try:
+            if task:
+                result = task.apply_async(entry.args, entry.kwargs,
+                                          publisher=publisher, task_id=str(ObjectId()), **entry.options)
+            else:
+                result = self.send_task(entry.task, entry.args, entry.kwargs,
+                                        publisher=publisher, **entry.options)
+
+            db.schedules.update_one({'_id': ObjectId(entry.id)}, {'$push': {'previous_runs': ObjectId(result.task_id)}})
+        except Exception as exc:
+            reraise(SchedulingError, SchedulingError(
+                "Couldn't apply scheduled task {0.name}: {exc}".format(
+                    entry, exc=exc)), sys.exc_info()[2])
+        finally:
+            self._tasks_since_sync += 1
+            if self.should_sync():
+                self._do_sync()
+
+        return result
 
     def install_default_entries(self, data):
         pass
