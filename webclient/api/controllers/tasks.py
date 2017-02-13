@@ -163,4 +163,7 @@ class Geolocation(Resource):
     @classmethod
     @handle_errors
     def get(cls, task_id):
-        return get_task_geolocation(task_id)
+        geolocation = get_task_geolocation(task_id)
+        response = Response(json_util.dumps({'geolocation': geolocation}), mimetype='application/json')
+
+        return response

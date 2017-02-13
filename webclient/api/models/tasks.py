@@ -60,7 +60,7 @@ def get_task_subresource(task_id, resource_name):
     analysis = db.analyses.find_one({'_id': ObjectId(task['analysis_id'])})
 
     if resource_name == 'options':
-        resource = analysis
+        resource = [analysis]
     else:
         resource = db[resource_name].find({'analysis_id': ObjectId(analysis['_id'])})
 
