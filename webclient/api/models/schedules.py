@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.dbcontext import db
 from bson.objectid import ObjectId
@@ -7,18 +8,25 @@ from bson.objectid import ObjectId
 def get_schedules(args):
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
-    d = get_paged_documents(db.schedules,
-                            page=page,
-                            pagesize=pagesize,
-                            sort=sort,
-                            collums=None)
+    schedules = get_paged_documents(db.schedules,
+                                    page=page,
+                                    pagesize=pagesize,
+                                    sort=sort,
+                                    collums=None)
 
-    json_string = json.dumps(d)
+    for schedule in schedules['data']:
+        if schedule['last_run_at']:
+            schedule['last_run_at'] = datetime.fromtimestamp(schedule['last_run_at']['$date'] / 1000.0).isoformat()
+
+    json_string = json.dumps(schedules)
     return json_string
 
 
 def get_schedule(schedule_id):
     schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
+
+    if schedule['last_run_at']:
+        schedule['last_run_at'] = schedule['last_run_at'].isoformat()
 
     return schedule
 

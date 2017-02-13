@@ -17,8 +17,8 @@ class Task(Resource):
     @classmethod
     @handle_errors
     def delete(cls, task_id):
-        delete_task(task_id)
-        response = Response(json_util.dumps({'task': None}), mimetype='application/json')
+        result = delete_task(task_id)
+        response = Response(json_util.dumps({'task': result}), mimetype='application/json')
 
         return response
 
@@ -122,6 +122,13 @@ class Behaviours(Resource):
     @handle_errors
     def get(cls, task_id):
         return get_subresource(task_id, 'behaviours')
+
+
+class Certificates(Resource):
+    @classmethod
+    @handle_errors
+    def get(cls, task_id):
+        return get_subresource(task_id, 'certificates')
 
 
 class Graphs(Resource):

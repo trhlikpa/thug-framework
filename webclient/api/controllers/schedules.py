@@ -17,8 +17,8 @@ class Schedule(Resource):
     @classmethod
     @handle_errors
     def delete(cls, schedule_id):
-        delete_schedule(schedule_id)
-        response = Response(json_util.dumps({'schedule': None}), mimetype='application/json')
+        result = delete_schedule(schedule_id)
+        response = Response(json_util.dumps({'schedule': result}), mimetype='application/json')
 
         return response
 

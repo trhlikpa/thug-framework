@@ -15,6 +15,10 @@ def get_jobs(args, schedule_id=None):
 
     if schedule_id is not None:
         schedule = get_schedule(schedule_id)
+
+        if not schedule:
+            return list()
+
         previous_runs = schedule['previous_runs']
         filter_fields = {'_id': {'$in': previous_runs}}
 
@@ -28,14 +32,14 @@ def get_jobs(args, schedule_id=None):
 
         filter_fields['$or'] = tmp
 
-    d = get_paged_documents(db.jobs,
-                            page=page,
-                            pagesize=pagesize,
-                            sort=sort,
-                            collums=None,
-                            filter_fields=filter_fields)
+    jobs = get_paged_documents(db.jobs,
+                               page=page,
+                               pagesize=pagesize,
+                               sort=sort,
+                               collums=None,
+                               filter_fields=filter_fields)
 
-    json_string = json.dumps(d)
+    json_string = json.dumps(jobs)
     return json_string
 
 
@@ -134,6 +138,6 @@ def delete_job(job_id):
 def update_job(job_id, data):
     job_name = data.get('name')
 
-    db.schedules.update_one({'_id': ObjectId(job_id)}, {'$set': {'name': job_name}})
+    db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': {'name': job_name}})
 
     return job_id

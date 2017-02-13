@@ -15,17 +15,21 @@ def get_tasks(args, job_id=None):
 
     if job_id is not None:
         job = get_job(job_id)
+
+        if not job:
+            return list()
+
         tasks_id = job['tasks']
         filter_fields = {'_id': {'$in': tasks_id}}
 
-    d = get_paged_documents(db.tasks,
-                            page=page,
-                            pagesize=pagesize,
-                            sort=sort,
-                            filter_fields=filter_fields
-                            )
+    tasks = get_paged_documents(db.tasks,
+                                page=page,
+                                pagesize=pagesize,
+                                sort=sort,
+                                filter_fields=filter_fields
+                                )
 
-    json_string = json.dumps(d)
+    json_string = json.dumps(tasks)
     return json_string
 
 

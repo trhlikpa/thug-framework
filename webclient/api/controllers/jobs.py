@@ -17,8 +17,8 @@ class Job(Resource):
     @classmethod
     @handle_errors
     def delete(cls, job_id):
-        delete_job(job_id)
-        response = Response(json_util.dumps({'job': None}), mimetype='application/json')
+        result = delete_job(job_id)
+        response = Response(json_util.dumps({'job': result}), mimetype='application/json')
 
         return response
 
