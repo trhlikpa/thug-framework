@@ -75,8 +75,59 @@ def thug_sent_handler(headers=None, body=None, **kwargs):
 
 
 def revoke_job(job_id):
-    pass
+    execute_job.AsyncResult(job_id).revoke()
+    job = db.jobs.find_one({'_id': ObjectId(job_id)})
+
+    if not job:
+        return False
+
+    crawl_id = job['_crawl_id']
+    task_ids = job['tasks']
+
+    crawl.AsyncResult(str(crawl_id)).revoke()
+
+    for task_id in task_ids:
+        revoke_task(str(task_id))
+
+    job_rm = db.jobs.delete_one({'_id': ObjectId(job_id)})
+
+    if job_rm.deleted_count > 0:
+        return True
+
+    return False
 
 
 def revoke_task(task_id):
-    pass
+    analyze.AsyncResult(task_id).revoke()
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+
+    if not task:
+        return False
+
+    job_id = task['job_id']
+    analysis_id = task['analysis_id']
+
+    db.jobs.update_one({'_id': job_id}, {'$pull': {'tasks': ObjectId(task_id)}})
+
+    db.connections.delete_many({'analysis_id': analysis_id})
+    db.locations.delete_many({'analysis_id': analysis_id})
+    db.samples.delete_many({'analysis_id': analysis_id})
+    db.exploits.delete_many({'analysis_id': analysis_id})
+    db.classifiers.delete_many({'analysis_id': analysis_id})
+    db.codes.delete_many({'analysis_id': analysis_id})
+    db.behaviors.delete_many({'analysis_id': analysis_id})
+    db.certificates.delete_many({'analysis_id': analysis_id})
+    db.graphs.delete_many({'analysis_id': analysis_id})
+    db.virustotal.delete_many({'analysis_id': analysis_id})
+    db.honeyagent.delete_many({'analysis_id': analysis_id})
+    db.androguard.delete_many({'analysis_id': analysis_id})
+    db.peepdf.delete_many({'analysis_id': analysis_id})
+
+    db.analyses.delete_one({'_id': analysis_id})
+
+    task_rm = db.tasks.delete_one({'_id': ObjectId(task_id)})
+
+    if task_rm.deleted_count > 0:
+        return True
+
+    return False
