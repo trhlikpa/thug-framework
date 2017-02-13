@@ -17,6 +17,8 @@ logger = get_logger(__name__)
 debug, info, error, warning = (logger.debug, logger.info,
                                logger.error, logger.warning)
 
+MAX_INTERVAL = 2 * 60
+
 
 class MongoEntry(ScheduleEntry):
     def __init__(self, model, app=None):
@@ -65,6 +67,9 @@ class MongoEntry(ScheduleEntry):
 
         self.run_after = self.model['run_after']
 
+        self.model['args'][0]['name'] = self.name + '_' + str(self.total_run_count + 1)
+        self.args[0]['name'] = self.model['args'][0]['name']
+
     def __next__(self):
         self.model['last_run_at'] = self.app.now()
         self.model['total_run_count'] += 1
@@ -74,13 +79,13 @@ class MongoEntry(ScheduleEntry):
 
     def is_due(self):
         if not self.model['enabled']:
-            return False, 5.0  # 5 second delay for re-enable.
+            return False, MAX_INTERVAL
 
-        if self.model['total_run_count'] >= self.model['max_run_count']:
-            return False, 5.0
+        if self.model['total_run_count'] >= (self.model['max_run_count'] - 1):
+            return False, MAX_INTERVAL
 
         if self.model['run_after'] and self.model['run_after'] < self.app.now():
-            return False, 5.0
+            return False, MAX_INTERVAL
 
         return self.schedule.is_due(self.last_run_at)
 
@@ -96,8 +101,8 @@ class MongoEntry(ScheduleEntry):
 class MongoScheduler(Scheduler):
     Entry = MongoEntry
 
-    _fetch_interval = timedelta(seconds=5)
-    max_interval = 2 * 60
+    _fetch_interval = timedelta(seconds=10)
+    max_interval = MAX_INTERVAL
 
     def __init__(self, *args, **kwargs):
         self._schedule = {}

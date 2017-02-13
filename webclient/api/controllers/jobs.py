@@ -1,7 +1,7 @@
 from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
-from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job
+from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
 from webclient.api.utils.decorators import handle_errors
 
 
@@ -22,6 +22,20 @@ class Job(Resource):
 
         return response
 
+    @classmethod
+    @handle_errors
+    def put(cls, job_id):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('name', type=str, help='Job name')
+
+        args = parser.parse_args()
+
+        job = update_job(job_id, args)
+        response = Response(json_util.dumps({'job': job}), mimetype='application/json')
+
+        return response
+
 
 class JobList(Resource):
     @classmethod
@@ -38,7 +52,7 @@ class JobList(Resource):
 
         # Schedule params
         parser.add_argument('eta', type=str, help='Estimated time of arival; ISO 8601 string format')
-        parser.add_argument('max_run_count', type=str, help='Number of periodic task execution')
+        parser.add_argument('max_run_count', type=str, help='Number of job runs')
         parser.add_argument('cron', type=dict, help='Schedule in cron format')
         parser.add_argument('interval', type=dict, help='Schedule defined as intervals')
 
@@ -88,6 +102,25 @@ class JobList(Resource):
         args = parser.parse_args()
 
         jobs = get_jobs(args)
+        response = Response(jobs, mimetype='application/json')
+
+        return response
+
+
+class JobsBySchedule(Resource):
+    @classmethod
+    @handle_errors
+    def get(cls, schedule_id):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('sort', type=str, location='args')
+        parser.add_argument('page', type=int, location='args')
+        parser.add_argument('per_page', type=int, location='args')
+        parser.add_argument('filter', type=str, location='args')
+
+        args = parser.parse_args()
+
+        jobs = get_jobs(args, schedule_id)
         response = Response(jobs, mimetype='application/json')
 
         return response

@@ -59,5 +59,10 @@ def delete_schedule(schedule_id):
     return False
 
 
-def pause_schedule(schedule_id):
-    db.schedules.update_one({'_id': schedule_id}, {'$set': {'enabled': False}})
+def update_schedule(schedule_id, data):
+    enabled = data.get('enabled', False)
+    schedule_name = data.get('name')
+
+    db.schedules.update_one({'_id': ObjectId(schedule_id)}, {'$set': {'enabled': enabled, 'name': schedule_name}})
+
+    return schedule_id

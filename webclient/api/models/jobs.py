@@ -1,17 +1,22 @@
 import json
 from bson import ObjectId
-from webclient.api.models.schedules import create_schedule
+from webclient.api.models.schedules import create_schedule, get_schedule
 from webclient.dbcontext import db
 from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
 from webclient.api.utils.celeryutils import normalize_job_states
 from worker.tasks import execute_job, revoke_job
 
 
-def get_jobs(args):
+def get_jobs(args, schedule_id=None):
     normalize_job_states()
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
-    filter_fields = None
+    filter_fields = {}
+
+    if schedule_id is not None:
+        schedule = get_schedule(schedule_id)
+        previous_runs = schedule['previous_runs']
+        filter_fields = {'_id': {'$in': previous_runs}}
 
     if filter_arg:
         tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
@@ -58,10 +63,10 @@ def create_job(data):
         raise AttributeError('Submitter id is missing')
     '''
 
-    job_type = data.get('type', 'singleurl')
+    job_type = data.get('type') or 'singleurl'
+    user_agent = data.get('useragent') or 'winxpie60'
     crawler_time_limit = data.get('crawler_time_limit') or 600
     thug_time_limit = data.get('thug_time_limit') or 600
-    user_agent = data.get('useragent', 'winxpie60')
 
     eta = data.get('eta')
     cron = data.get('cron')
@@ -123,4 +128,12 @@ def create_job(data):
 
 
 def delete_job(job_id):
-    revoke_job(job_id)
+    return revoke_job(job_id)
+
+
+def update_job(job_id, data):
+    job_name = data.get('name')
+
+    db.schedules.update_one({'_id': ObjectId(job_id)}, {'$set': {'name': job_name}})
+
+    return job_id

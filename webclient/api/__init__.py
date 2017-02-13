@@ -8,7 +8,7 @@ api = Api(api_blueprint)
 api.add_resource(tasks.TaskList, '/tasks/')
 api.add_resource(tasks.TasksByJob, '/jobs/<job_id>/tasks/')
 
-api.add_resource(tasks.Task, '/tasks/<task_id>')
+api.add_resource(tasks.Task, '/tasks/<task_id>/')
 
 api.add_resource(tasks.Options, '/tasks/<task_id>/options/')
 api.add_resource(tasks.Connections, '/tasks/<task_id>/connections/')
@@ -26,13 +26,13 @@ api.add_resource(tasks.Peepdf, '/tasks/<task_id>/peepdf/')
 api.add_resource(tasks.Geolocation, '/tasks/<task_id>/geolocation/')
 
 api.add_resource(jobs.JobList, '/jobs/')
-api.add_resource(jobs.Job, '/jobs/<job_id>')
-# api.add_resource(jobs.JobsBySchedule, '/schedules/<schedule_id>/jobs/')
+api.add_resource(jobs.Job, '/jobs/<job_id>/')
+api.add_resource(jobs.JobsBySchedule, '/schedules/<schedule_id>/jobs/')
 
 api.add_resource(schedules.ScheduleList, '/schedules/')
-api.add_resource(schedules.Schedule, '/schedules/<schedule_id>')
+api.add_resource(schedules.Schedule, '/schedules/<schedule_id>/')
 
 api.add_resource(useragents.UserAgentList, '/useragents/')
 
-api.add_resource(auth.Login, '/auth/login')
-api.add_resource(auth.Register, '/auth/register')
+api.add_resource(auth.Login, '/auth/login/')
+api.add_resource(auth.Register, '/auth/register/')

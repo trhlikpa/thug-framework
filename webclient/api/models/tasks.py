@@ -11,7 +11,7 @@ def get_tasks(args, job_id=None):
     normalize_task_states()
     page, pagesize, sort, _ = parse_url_parameters(args)
 
-    filter_fields = None
+    filter_fields = {}
 
     if job_id is not None:
         job = get_job(job_id)
@@ -37,7 +37,7 @@ def get_task(task_id):
 
 
 def delete_task(task_id):
-    revoke_task(task_id)
+    return revoke_task(task_id)
 
 
 def get_task_geolocation(task_id):

@@ -1,7 +1,7 @@
 from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
-from webclient.api.models.schedules import get_schedule, get_schedules, delete_schedule
+from webclient.api.models.schedules import get_schedule, get_schedules, delete_schedule, update_schedule
 from webclient.api.utils.decorators import handle_errors
 
 
@@ -19,6 +19,21 @@ class Schedule(Resource):
     def delete(cls, schedule_id):
         delete_schedule(schedule_id)
         response = Response(json_util.dumps({'schedule': None}), mimetype='application/json')
+
+        return response
+
+    @classmethod
+    @handle_errors
+    def put(cls, schedule_id):
+        parser = reqparse.RequestParser()
+
+        parser.add_argument('enabled', type=bool, help='Schedule state')
+        parser.add_argument('name', type=str, help='Schedule name')
+
+        args = parser.parse_args()
+
+        schedule = update_schedule(schedule_id, args)
+        response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
 
         return response
 
