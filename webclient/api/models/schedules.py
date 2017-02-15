@@ -6,6 +6,11 @@ from bson.objectid import ObjectId
 
 
 def get_schedules(args):
+    """
+    Returns list of schedules
+
+    :param args: pagination and filtering arguments
+    """
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
     schedules = get_paged_documents(db.schedules,
@@ -14,6 +19,7 @@ def get_schedules(args):
                                     sort=sort,
                                     collums=None)
 
+    # Convert unix timestamp to ISO 8601 string
     for schedule in schedules['data']:
         if schedule['last_run_at']:
             schedule['last_run_at'] = datetime.fromtimestamp(schedule['last_run_at']['$date'] / 1000.0).isoformat()
@@ -23,8 +29,14 @@ def get_schedules(args):
 
 
 def get_schedule(schedule_id):
+    """
+    Returns schedule with specified schedule_id
+
+    :param schedule_id: Schedule ID
+    """
     schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
 
+    # Convert python datetime object to ISO 8601 string
     if schedule['last_run_at']:
         schedule['last_run_at'] = schedule['last_run_at'].isoformat()
 
@@ -32,6 +44,20 @@ def get_schedule(schedule_id):
 
 
 def create_schedule(task, name, max_run_count, run_after, cron=None, interval=None, args=None, kwargs=None, opt=None):
+    """
+    Creates new schedule
+
+    :param task: celery task
+    :param name: schedule name
+    :param max_run_count: maximum number of celery task iterations
+    :param run_after: run first celery task after
+    :param cron: crontab type schedule
+    :param interval: interval type schedule
+    :param args: task arguments
+    :param kwargs: task key word arguments
+    :param opt: task options
+    :return: schedule ID
+    """
     schedule_id = ObjectId()
 
     args[0]['schedule_id'] = str(schedule_id)
@@ -59,6 +85,12 @@ def create_schedule(task, name, max_run_count, run_after, cron=None, interval=No
 
 
 def delete_schedule(schedule_id):
+    """
+    Deletes schedule with specified schedule_id
+
+    :param schedule_id: schedule ID
+    :return: True if successful, False otherwise
+    """
     result_db = db.schedules.delete_one({'_id': ObjectId(schedule_id)})
 
     if result_db.deleted_count > 0:
@@ -68,6 +100,13 @@ def delete_schedule(schedule_id):
 
 
 def update_schedule(schedule_id, data):
+    """
+    Updates schedule with specified schedule_id
+
+    :param schedule_id: schedule ID
+    :param data: field to update
+    :return: schedule ID
+    """
     enabled = data.get('enabled', False)
     schedule_name = data.get('name')
 

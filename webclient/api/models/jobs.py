@@ -8,6 +8,12 @@ from worker.tasks import execute_job, revoke_job
 
 
 def get_jobs(args, schedule_id=None):
+    """
+    Returns list of jobs
+
+    :param args: pagination and filtering arguments
+    :param schedule_id: schedule ID
+    """
     normalize_job_states()
     page, pagesize, sort, filter_arg = parse_url_parameters(args)
 
@@ -44,6 +50,11 @@ def get_jobs(args, schedule_id=None):
 
 
 def get_job(job_id):
+    """
+    Returns job with job_id
+
+    :param job_id: job ID
+    """
     normalize_job_states()
     job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
@@ -51,6 +62,12 @@ def get_job(job_id):
 
 
 def create_job(data):
+    """
+    Creates job
+
+    :param data: job parameters
+    :return: job ID
+    """
     url = data.get('url')
 
     if not url:
@@ -122,6 +139,7 @@ def create_job(data):
         'tasks': []
     }
 
+    # Schedule job if cron or interval is present
     if cron or interval:
         create_schedule(task='worker.tasks.execute_job', name=job_name, args=[job_data],
                         max_run_count=max_run_count, run_after=eta, cron=cron, interval=interval)
@@ -132,10 +150,23 @@ def create_job(data):
 
 
 def delete_job(job_id):
+    """
+    Deletes job with specified job_id
+
+    :param job_id: job ID
+    :return: True if successful, False otherwise
+    """
     return revoke_job(job_id)
 
 
 def update_job(job_id, data):
+    """
+    Updates job with specified job_id
+
+    :param job_id: job ID
+    :param data: fields to change
+    :return: job ID
+    """
     job_name = data.get('name')
 
     db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': {'name': job_name}})

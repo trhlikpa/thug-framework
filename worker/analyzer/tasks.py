@@ -6,6 +6,13 @@ from worker.dbcontext import db
 
 @celery.task(bind=True)
 def analyze(self, job_id, url):
+    """
+    Analyses url with use of thug honeypot and saves results in mongo database
+
+    :param self: celery task object
+    :param job_id: job ID to load configuration with
+    :param url: url to analyze
+    """
     # Lazy load of task dependencies
     from thugapi import Thug
     from worker.utils.netutils import check_url
@@ -55,7 +62,7 @@ def analyze(self, job_id, url):
             job_output_data.update(initial_output_data)
 
         db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': job_output_data})
-        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data}, upsert=True)
+        db.tasks.update_one({'_id': ObjectId(self.request.id)}, {'$set': initial_output_data})
 
         thug = Thug()
 
@@ -77,6 +84,7 @@ def analyze(self, job_id, url):
             sample_classifiers=args.get('sample_classifiers')
         )
 
+        # classifying task
         exploits = db.exploits.find_one({'analysis_id': ObjectId(analysis_id)})
 
         classification = 'CLEAR'
@@ -90,6 +98,7 @@ def analyze(self, job_id, url):
             'classification': classification
         }
 
+        # task geolocation
         geolocation_id = geolocate(url)
         output_data['geolocation_id'] = ObjectId(geolocation_id)
 

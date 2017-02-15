@@ -10,11 +10,13 @@ from webclient.api import api_blueprint
 app.register_blueprint(api_blueprint)
 
 
+# Frontend path
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
 
+# Reroute everthing to frontend
 @app.route('/<path:path>', methods=['GET'])
 def any_path(path):
     return render_template('index.html')

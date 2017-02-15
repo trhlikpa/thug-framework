@@ -1,3 +1,13 @@
+# Copyright 2013 Regents of the University of Michigan
+
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# https://github.com/zmap/celerybeat-mongo
+#
+# Modifications  2017 Pavel Trhlik
+#
 import sys
 from datetime import datetime, timedelta
 from billiard.five import reraise
@@ -17,11 +27,19 @@ logger = get_logger(__name__)
 debug, info, error, warning = (logger.debug, logger.info,
                                logger.error, logger.warning)
 
+
+# Celery beat wake up interval
 MAX_INTERVAL = 2 * 60
 
 
 class MongoEntry(ScheduleEntry):
+    """ A mongodb entry in the scheduler """
+
     def __init__(self, model, app=None):
+        """
+        :param model: schedule mongodb document
+        :param app: celery app
+        """
         self.app = app or current_app
         self.model = model
         self.id = str(model['_id'])
@@ -67,10 +85,14 @@ class MongoEntry(ScheduleEntry):
 
         self.run_after = self.model['run_after']
 
+        # Fix name of the next job iteration
         self.model['args'][0]['name'] = self.name + '_' + str(self.total_run_count + 1)
         self.args[0]['name'] = self.model['args'][0]['name']
 
     def __next__(self):
+        """
+        Returns new MongoEntry instance with updated fields
+        """
         self.model['last_run_at'] = self.app.now()
         self.model['total_run_count'] += 1
         return self.__class__(self.model)
@@ -78,6 +100,9 @@ class MongoEntry(ScheduleEntry):
     next = __next__  # for 2to3
 
     def is_due(self):
+        """
+        Checks if task should be executed
+        """
         if not self.model['enabled']:
             return False, MAX_INTERVAL
 
@@ -90,6 +115,9 @@ class MongoEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def save(self):
+        """
+        Saves relevant MongoEntry fields to the database
+        """
         updated_data = {
             'last_run_at': self.model['last_run_at'],
             'total_run_count': self.model['total_run_count']
@@ -99,9 +127,11 @@ class MongoEntry(ScheduleEntry):
 
 
 class MongoScheduler(Scheduler):
+    """ Scheduler with mongodb backend """
     Entry = MongoEntry
 
     _fetch_interval = timedelta(seconds=10)
+
     max_interval = MAX_INTERVAL
 
     def __init__(self, *args, **kwargs):
@@ -113,9 +143,6 @@ class MongoScheduler(Scheduler):
         return self.app.send_task(task_id=str(ObjectId()), *args, **kwargs)
 
     def apply_async(self, entry, publisher=None, **kwargs):
-        # Update timestamps and run counts before we actually execute,
-        # so we have that done if an exception is raised (doesn't schedule
-        # forever.)
         entry = self.reserve(entry)
         task = self.app.tasks.get(entry.task)
 
@@ -143,12 +170,20 @@ class MongoScheduler(Scheduler):
         pass
 
     def requires_update(self):
+        """
+        Ensures there is minimum timedelta between updates
+        """
         if not self._last_updated:
             return True
 
         return self._last_updated + self._fetch_interval < datetime.now()
 
     def get_from_database(self):
+        """
+        Updates schedule from database
+
+        :return: updated schedule
+        """
         self.sync()
         schedules = {}
 
@@ -159,6 +194,9 @@ class MongoScheduler(Scheduler):
 
     @property
     def schedule(self):
+        """
+        MongoEntry map
+        """
         if self.requires_update():
             self._schedule = self.get_from_database()
             self._last_updated = datetime.now()
@@ -166,5 +204,8 @@ class MongoScheduler(Scheduler):
         return self._schedule
 
     def sync(self):
+        """
+        Saves MongoEntry instances
+        """
         for entry in self._schedule.values():
             entry.save()

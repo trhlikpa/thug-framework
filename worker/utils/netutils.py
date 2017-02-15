@@ -1,11 +1,15 @@
 from socket import gethostbyname
 from urlparse import urlparse
 from httplib import HTTPConnection
-
 from worker.utils.exceptions import UrlFormatError
 
 
 def url_to_ip(url):
+    """
+    Returns ip address of an url
+
+    :param url: url
+    """
     netloc = urlparse(url).netloc
     dom = netloc.split('@')[-1].split(':')[0]
     ip = gethostbyname(dom)
@@ -17,6 +21,11 @@ def url_to_ip(url):
 
 
 def get_top_level_domain(url):
+    """
+    Returns top level domain of and url
+
+    :param url: url
+    """
     netloc = urlparse(url).netloc
     domain = netloc.split('@')[-1].split(':')[0]
 
@@ -27,6 +36,12 @@ def get_top_level_domain(url):
 
 
 def check_url(url):
+    """
+    Checks if url is reachable
+
+    :param url: url
+    :return: True if successful, False otherwise
+    """
     p = urlparse(url)
     conn = HTTPConnection(p.netloc)
     conn.request('HEAD', p.path)

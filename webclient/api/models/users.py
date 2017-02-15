@@ -9,6 +9,13 @@ from validate_email import validate_email
 
 
 def validate_user(email, password):
+    """
+    Validates user logging in
+
+    :param email: user email
+    :param password: user password
+    :return: JSON web token
+    """
     user = db.users.find_one({'email': email})
 
     if user is None:
@@ -28,6 +35,15 @@ def validate_user(email, password):
 
 
 def create_user(name, email, password, password_confirm):
+    """
+    Creates user
+
+    :param name: username
+    :param email: user email
+    :param password: password
+    :param password_confirm: confirmation password
+    :return: user ID
+    """
     if not validate_email(email):
         raise AssertionError('Email address is not valid')
 
@@ -62,6 +78,11 @@ def create_user(name, email, password, password_confirm):
 
 
 def get_user(user_id):
+    """
+    Returns user with specified user_id
+
+    :param user_id: user ID
+    """
     user = db.users.find_one({'_id': ObjectId(user_id)})
 
     return user

@@ -5,6 +5,16 @@ from bson import ObjectId
 
 
 def normalize_task_states():
+    """
+    Normalizes tasks that exceeded time limit and still have 'STARTED' state
+
+    Happens when:
+        - os kills celery task
+
+        - task exceeds hard time limit
+
+        - task is lost
+    """
     tasks = db.tasks.find({'_state': 'STARTED'})
 
     for entry in tasks:
@@ -18,6 +28,7 @@ def normalize_task_states():
 
         if now_time > limit_time:
             entry['_state'] = 'FAILURE'
+            entry['classification'] = 'SUSPICIOUS'
             entry['end_time'] = str(now_time.isoformat())
             entry['_error'] = 'Thug was killed by worker. Possibly exceeded thug hard limit.'
             key = entry['_id']
@@ -26,6 +37,9 @@ def normalize_task_states():
 
 
 def normalize_job_states():
+    """
+    Normalizes and classifies jobs
+    """
     jobs = db.jobs.find({'_state': 'STARTED'})
 
     normalize_task_states()
@@ -38,6 +52,7 @@ def normalize_job_states():
             now_time = datetime.utcnow()
             limit_time = start_time + timedelta(seconds=crawler_time_limit)
 
+            # Normalizes state when crawling task was killed or lost
             if now_time > limit_time:
                 entry['_state'] = 'FAILURE'
                 entry['crawler_end_time'] = str(now_time.isoformat())
@@ -57,6 +72,7 @@ def normalize_job_states():
         classification = 'CLEAR'
         max_end_time = entry['crawler_end_time']
 
+        # Classifies job after every task finishes
         for task_id in tasks:
             task = db.tasks.find_one({'_id': task_id})
 

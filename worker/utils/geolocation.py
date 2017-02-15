@@ -4,6 +4,12 @@ from worker import config
 
 
 def geolocate(url):
+    """
+    Finds data about url in geolocation database and transfers it mongodb
+
+    :param url: url to lacate
+    :return: geolocation_id
+    """
     from geoip2.database import Reader
     from geoip2.webservice import Client
     from geoip2.errors import GeoIP2Error, HTTPError

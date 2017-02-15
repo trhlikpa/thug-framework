@@ -8,6 +8,12 @@ from worker.tasks import revoke_task
 
 
 def get_tasks(args, job_id=None):
+    """
+    Returns list of tasks
+
+    :param args: pagination and filtering arguments
+    :param job_id: job ID
+    """
     normalize_task_states()
     page, pagesize, sort, _ = parse_url_parameters(args)
 
@@ -34,6 +40,11 @@ def get_tasks(args, job_id=None):
 
 
 def get_task(task_id):
+    """
+    Returns task with specified task_id
+
+    :param task_id: task ID
+    """
     normalize_task_states()
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
@@ -41,10 +52,21 @@ def get_task(task_id):
 
 
 def delete_task(task_id):
+    """
+    Deletes task with specified task_id
+
+    :param task_id: task ID
+    :return: True if successful, False otherwise
+    """
     return revoke_task(task_id)
 
 
 def get_task_geolocation(task_id):
+    """
+    Returns geolocation information of task with specified ID
+
+    :param task_id: task ID
+    """
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if not task:
@@ -56,6 +78,12 @@ def get_task_geolocation(task_id):
 
 
 def get_task_subresource(task_id, resource_name):
+    """
+    Returns subresource of task with specified task_id
+
+    :param task_id: task ID
+    :param resource_name: resource name
+    """
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if not task:
@@ -70,6 +98,7 @@ def get_task_subresource(task_id, resource_name):
 
     tmp_dict = list()
 
+    # Replaces url_ids with actual urls
     for entry in resource:
         new_entry = dict(entry)
 

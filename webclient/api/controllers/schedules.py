@@ -6,9 +6,24 @@ from webclient.api.utils.decorators import handle_errors
 
 
 class Schedule(Resource):
+    """
+    Resource representing '/api/v1.0/schedules/<schedule_id>/' api route
+
+    available methods: GET, DELETE, PUT
+    """
     @classmethod
     @handle_errors
     def get(cls, schedule_id):
+        """
+        Returns Schedule with specified schedule_id
+
+        GET /api/v1.0/schedules/<schedule_id>/
+
+        URL parameters:
+            :schedule_id: schedule ID
+
+        :return: JSON encoded schedule document; null if not found
+        """
         schedule = get_schedule(schedule_id)
         response = Response(json_util.dumps({'schedule': schedule}), mimetype='application/json')
 
@@ -17,6 +32,16 @@ class Schedule(Resource):
     @classmethod
     @handle_errors
     def delete(cls, schedule_id):
+        """
+        Deletes Schedule with specified schedule_id
+
+        DELETE /api/v1.0/schedules/<schedule_id>/
+
+        URL parameters:
+            :schedule_id: schedule ID
+
+        :return: True if removed, False otherwise
+        """
         result = delete_schedule(schedule_id)
         response = Response(json_util.dumps({'schedule': result}), mimetype='application/json')
 
@@ -25,6 +50,20 @@ class Schedule(Resource):
     @classmethod
     @handle_errors
     def put(cls, schedule_id):
+        """
+        Updates Schedule with specified schedule_id
+
+        PUT /api/v1.0/schedules/<schedule_id>/
+
+        URL parameters:
+            :schedule_id: schedules ID
+
+        Request body parameters:
+            :enabled: Pause or resume schedule
+            :name: New name
+
+        :return: Schedule ID
+        """
         parser = reqparse.RequestParser()
 
         parser.add_argument('enabled', type=bool, help='Schedule state')
@@ -39,9 +78,28 @@ class Schedule(Resource):
 
 
 class ScheduleList(Resource):
+    """
+    Resource representing '/api/v1.0/schedules/' api route
+
+    available methods: GET
+    """
     @classmethod
     @handle_errors
     def get(cls):
+        """
+        Returns list of schedules
+
+        GET /api/v1.0/schedules/
+
+        Query string arguments:
+
+        :sort: field and direction to sort on, default: '_id|1'
+        :page: page to show
+        :per_page: entries per page
+        :filter: phrase to filter
+
+        :return: list of schedules
+        """
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')

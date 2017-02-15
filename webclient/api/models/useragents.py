@@ -8,6 +8,9 @@ __personality_dirpath = os.path.join(__dir__, './personalities/')
 
 
 def create_list():
+    """
+    Creates list with thug user agents
+    """
     for filename in os.listdir(__personality_dirpath):
         if filename.endswith('.json'):
             with io.open(os.path.join(__personality_dirpath, filename), encoding='utf8') as f:
@@ -24,6 +27,9 @@ def create_list():
 
 
 def get_useragents():
+    """
+    Return list with thug user agents
+    """
     if not __useragents:
         create_list()
 

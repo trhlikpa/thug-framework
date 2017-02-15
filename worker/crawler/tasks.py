@@ -7,6 +7,14 @@ from celery import signature
 
 @celery.task(bind=True)
 def crawl(self, job_id, signatures=None):
+    """
+    Uses scrapy web crawler to colect urls and runs signatures on every url
+
+    :param self: celery task object
+    :param job_id: job ID to load configuration with
+    :param signatures: serialized celery tasks
+    """
+
     # Lazy load of task dependencies
     from scrapy.crawler import CrawlerProcess
     from worker.crawler.urlspider import UrlSpider
@@ -85,6 +93,7 @@ def crawl(self, job_id, signatures=None):
         if signatures is None:
             return
 
+        # apply signatures on every url
         for url in urls:
             for sig in signatures:
                 task_id = ObjectId()

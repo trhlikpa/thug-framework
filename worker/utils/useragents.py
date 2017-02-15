@@ -5,6 +5,12 @@ import thug
 
 
 def get_useragent_string(useragent):
+    """
+    Converts thug user agent name to user agent string
+
+    :param useragent: thug user agent name
+    :return: user agent string
+    """
     if thug.__configuration_path__ is None:
         return None
 

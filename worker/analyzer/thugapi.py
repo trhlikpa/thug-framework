@@ -12,7 +12,13 @@ __logpath__ = '/etc/thug/logs/'
 
 
 class Thug(ThugAPI):
+    """
+    Represents honeypot thug instance
+    """
     def __init__(self):
+        """
+        Sets correct logging configuration
+        """
         config_parser = ConfigParser.ConfigParser()
 
         strs = config.MONGODB_URL.split(':')
@@ -38,7 +44,26 @@ class Thug(ThugAPI):
 
     def analyze_url(self, url, useragent, referer, java, shockwave, adobepdf, proxy, dom_events, no_cache, web_tracking,
                     url_classifiers, html_classifiers, js_classifiers, vb_classifiers, sample_classifiers):
+        """
+        Runs thug analysis with specified parameters
 
+        :param url: url to analyze
+        :param useragent: thug user agent
+        :param referer: http referer
+        :param java: java plugin version
+        :param shockwave: shockwave flash plugin version
+        :param adobepdf: adobepdf plugin version
+        :param proxy: proxy scheme://[username:password@]host:port
+        :param dom_events: comma separated DOM events
+        :param no_cache: disable enable local web cache
+        :param web_tracking: disable web tracking
+        :param url_classifiers: URL classifier rule
+        :param html_classifiers: HTML classifier rule
+        :param js_classifiers: JS classifier rule
+        :param vb_classifiers: VB classifier rule
+        :param sample_classifiers: Sample classifier rule
+        :return: thug analysis id
+        """
         if useragent:
             self.set_useragent(useragent)
         else:
@@ -100,5 +125,6 @@ class Thug(ThugAPI):
 
         self.log_event()
 
-        mongo =  __log__.ThugLogging.modules['mongodb']
+        # Finds mongo logging module and returns analysis_id
+        mongo = __log__.ThugLogging.modules['mongodb']
         return str(mongo.analysis_id)

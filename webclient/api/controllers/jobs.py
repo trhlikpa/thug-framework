@@ -6,9 +6,24 @@ from webclient.api.utils.decorators import handle_errors
 
 
 class Job(Resource):
+    """
+    Resource representing '/api/v1.0/jobs/<job_id>/' api route
+
+    available methods: GET, DELETE, PUT
+    """
     @classmethod
     @handle_errors
     def get(cls, job_id):
+        """
+        Returns Job with specified job_id
+
+        GET /api/v1.0/jobs/<job_id>/
+
+        URL parameters:
+            :job_id: Job ID
+
+        :return: JSON encoded job document; null if not found
+        """
         job = get_job(job_id)
         response = Response(json_util.dumps({'job': job}), mimetype='application/json')
 
@@ -17,6 +32,16 @@ class Job(Resource):
     @classmethod
     @handle_errors
     def delete(cls, job_id):
+        """
+        Deletes Job with specified job_id
+
+        DELETE /api/v1.0/jobs/<job_id>/
+
+        URL parameters:
+            :job_id: Job ID
+
+        :return: True if removed, False otherwise
+        """
         result = delete_job(job_id)
         response = Response(json_util.dumps({'job': result}), mimetype='application/json')
 
@@ -25,9 +50,22 @@ class Job(Resource):
     @classmethod
     @handle_errors
     def put(cls, job_id):
+        """
+        Updates Job with specified job_id
+
+        PUT /api/v1.0/jobs/<job_id>/
+
+        URL parameters:
+            :job_id: Job ID
+
+        Request body parameters:
+            :name: New name
+
+        :return: Job ID
+        """
         parser = reqparse.RequestParser()
 
-        parser.add_argument('name', type=str, help='Job name')
+        parser.add_argument('name', type=str, help='New name')
 
         args = parser.parse_args()
 
@@ -38,9 +76,29 @@ class Job(Resource):
 
 
 class JobList(Resource):
+    """
+    Resource representing '/api/v1.0/jobs/' api route
+
+    available methods: GET, POST
+    """
     @classmethod
     @handle_errors
     def post(cls):
+        """
+        Creates new job
+
+        POST /api/v1.0/jobs/
+
+        Request body parameters:
+
+        name, url, useragent, type, eta, max_run_count, cron, interval,
+        referer, java, shockwave, adobepdf, proxy, thug_time_limit, dom_events, no_cache, web_tracking,
+        url_classifiers, html_classifiers, js_classifiers, sample_classifiers, depth_limit, download_delay,
+        randomize_download_delay, redirect_max_times, robotstxt_obey, only_internal, crawler_time_limit,
+        allowed_domains
+
+        :return: Job ID
+        """
         parser = reqparse.RequestParser()
 
         # General params
@@ -92,6 +150,20 @@ class JobList(Resource):
     @classmethod
     @handle_errors
     def get(cls):
+        """
+        Returns list of jobs
+
+        GET /api/v1.0/jobs/
+
+        Query string arguments:
+
+        :sort: field and direction to sort on, default: '_id|1'
+        :page: page to show
+        :per_page: entries per page
+        :filter: phrase to filter
+
+        :return: list of jobs
+        """
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')
@@ -108,9 +180,32 @@ class JobList(Resource):
 
 
 class JobsBySchedule(Resource):
+    """
+    Resource representing '/schedules/<schedule_id>/jobs/' api route
+
+    available methods: GET
+    """
     @classmethod
     @handle_errors
     def get(cls, schedule_id):
+        """
+        Returns list of jobs with specified schedule_id
+
+        GET /schedules/<schedule_id>/jobs/
+
+        URL parameters:
+
+        :schedule_id: schedule ID
+
+        Query string arguments:
+
+        :sort: field and direction to sort on, default: '_id|1'
+        :page: page to show
+        :per_page: entries per page
+        :filter: phrase to filter
+
+        :return: list of jobs
+        """
         parser = reqparse.RequestParser()
 
         parser.add_argument('sort', type=str, location='args')

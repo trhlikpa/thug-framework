@@ -13,6 +13,12 @@ celery.autodiscover_tasks(['worker.crawler, worker.analyzer'])
 
 @celery.task(bind=True)
 def execute_job(self, data):
+    """
+
+    :param self: celery task object
+    :param data: job document
+    :return: job ID
+    """
     submit_time = datetime.utcnow().isoformat()
 
     job_id = self.request.id
@@ -22,6 +28,7 @@ def execute_job(self, data):
     data['_crawl_id'] = crawl_id
     data['submit_time'] = submit_time
 
+    # id fix for sake of consistency
     if data['schedule_id']:
         data['schedule_id'] = ObjectId(data['schedule_id'])
 
@@ -34,6 +41,7 @@ def execute_job(self, data):
 
     signatures = []
 
+    # serializing analyze task
     thug_signature = analyze.signature(time_limit=data['thug_time_limit'], eta=eta)
     signatures.append(thug_signature)
 
@@ -50,9 +58,14 @@ def execute_job(self, data):
 
 @after_task_publish.connect(sender='worker.analyzer.tasks.analyze')
 def thug_sent_handler(headers=None, body=None, **kwargs):
+    """
+    Fires when task is published to a worker
+    """
     submit_time = datetime.utcnow().isoformat()
 
     info = headers if 'task' in headers else body
+
+    # parse args
     job_id = ObjectId(make_tuple(info['argsrepr'])[0])
     url = make_tuple(info['argsrepr'])[1]
 
@@ -75,6 +88,12 @@ def thug_sent_handler(headers=None, body=None, **kwargs):
 
 
 def revoke_job(job_id):
+    """
+    Revokes job and deletes related database documents
+
+    :param job_id: job ID
+    :return: True if successful, False otherwise
+    """
     execute_job.AsyncResult(job_id).revoke()
     job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
@@ -98,6 +117,12 @@ def revoke_job(job_id):
 
 
 def revoke_task(task_id):
+    """
+    Revokes task and deletes related database documents
+
+    :param task_id: task ID
+    :return: True if successful, False otherwise
+    """
     analyze.AsyncResult(task_id).revoke()
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 

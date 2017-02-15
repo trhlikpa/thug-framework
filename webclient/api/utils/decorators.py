@@ -9,6 +9,11 @@ from webclient.api.models.users import get_user
 
 
 def login_required(func):
+    """
+    Wraps resource method that requires authorization
+
+    :param func: resource method
+    """
     @wraps(func)
     def decorator(*args, **kwargs):
         try:
@@ -32,6 +37,11 @@ def login_required(func):
 
 
 def validate_user(func):
+    """
+    Wraps resource method that belongs to specific user
+
+    :param func: resource method
+    """
     @wraps(func)
     def decorator(*args, **kwargs):
         user_id = kwargs.get('user_id')
@@ -45,6 +55,11 @@ def validate_user(func):
 
 
 def handle_errors(func):
+    """
+    Wraps recource method that requires exceptions handling
+
+    :param func: resource method
+    """
     @wraps(func)
     def decorator(*args, **kwargs):
         try:

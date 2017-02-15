@@ -6,11 +6,27 @@ from webclient.api.models.users import validate_user, create_user
 
 
 class Login(Resource):
+    """
+    Resource representing '/api/v1.0/auth/login/' api route
+
+    available methods: POST
+    """
     @classmethod
     def post(cls):
+        """
+        Logins user
+
+        POST /api/v1.0/auth/login/
+
+        Request body parameters:
+            :email: login email
+            :password: login password
+
+        :return: JSON web token
+        """
         parser = reqparse.RequestParser()
-        parser.add_argument('email', type=str, help='Email address', required=True)
-        parser.add_argument('password', type=str, help='Password', required=True)
+        parser.add_argument('email', type=str, help='Login email address', required=True)
+        parser.add_argument('password', type=str, help='Login password', required=True)
 
         args = parser.parse_args()
 
@@ -26,12 +42,30 @@ class Login(Resource):
 
 
 class Register(Resource):
+    """
+    Resource representing '/api/v1.0/auth/register/' api route
+
+    available methods: POST
+    """
     @classmethod
     def post(cls):
+        """
+        Creates user
+
+        POST /api/v1.0/auth/register/
+
+        Request body parameters:
+            :name: user name
+            :email: user email address
+            :password: user password
+            :password_confirm: password confirmation
+
+        :return: Newly created user ID
+        """
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, help='Account name', required=True)
-        parser.add_argument('email', type=str, help='Account email address', required=True)
-        parser.add_argument('password', type=str, help='Password', required=True)
+        parser.add_argument('name', type=str, help='User name', required=True)
+        parser.add_argument('email', type=str, help='User email address', required=True)
+        parser.add_argument('password', type=str, help='User password', required=True)
         parser.add_argument('password_confirm', type=str, help='Password confirmation', required=True)
 
         args = parser.parse_args()
