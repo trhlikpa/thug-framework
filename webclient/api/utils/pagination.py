@@ -35,14 +35,14 @@ def parse_url_parameters(args):
     if not pagesize:
         pagesize = 10
 
-    filter_args = None
+    filter_args = []
     filter_string = args.get('filter')
 
     if filter_string:
         filter_regex = re.compile('(\w+(\|\w+)+)(\|\|(\w+(\|\w+)+))*')
 
         if filter_regex.match(filter_string):
-            tmp_list = sort.split('||')
+            tmp_list = filter_string.split('||')
 
             for entry in tmp_list:
                 args_list = entry.split('|')

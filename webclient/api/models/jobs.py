@@ -33,25 +33,32 @@ def get_jobs(args, schedule_id=None):
         tmp_or = []
 
         for filter_arg in filter_args:
-            values = '|'.join(map(str, filter_arg['values']))
-            regex = {'$regex': '.*' + values + '.*', '$options': 'i'}
+            values = filter_arg['values']
             field = filter_arg['field']
+            value = '|'.join(map(str, values))
+            regex = {'$regex': '.*(' + value + ').*', '$options': 'ix'}
 
             if field == 'all':
-                tmp_or = [{'url': regex},
-                          {'name': regex},
-                          {'useragent': regex},
-                          {'_state': regex},
-                          {'type': regex},
-                          {'end_time': regex},
-                          {'classification': regex}]
+                tmp_or.extend([{'url': regex},
+                               {'name': regex},
+                               {'useragent': regex},
+                               {'_state': regex},
+                               {'type': regex},
+                               {'end_time': regex},
+                               {'classification': regex}])
                 break
+            elif field in ['end_time', 'start_time', 'submit_time']:
+                if len(values) == 2:
+                    tmp_and.append({field: {'$gte': values[0], '$lte': values[1]}})
+                else:
+                    tmp_and.append({field: regex})
             else:
                 tmp_and.append({field: regex})
 
         if len(tmp_or) > 0:
             filter_fields['$or'] = tmp_or
-        elif len(tmp_and) > 0:
+
+        if len(tmp_and) > 0:
             filter_fields['$and'] = tmp_and
 
     jobs = get_paged_documents(db.jobs,
