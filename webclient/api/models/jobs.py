@@ -15,7 +15,7 @@ def get_jobs(args, schedule_id=None):
     :param schedule_id: schedule ID
     """
     normalize_job_states()
-    page, pagesize, sort, filter_arg = parse_url_parameters(args)
+    page, pagesize, sort, filter_args = parse_url_parameters(args)
 
     filter_fields = {}
 
@@ -28,15 +28,31 @@ def get_jobs(args, schedule_id=None):
         previous_runs = schedule['previous_runs']
         filter_fields = {'_id': {'$in': previous_runs}}
 
-    if filter_arg:
-        tmp = [{'url': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'name': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'useragent': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'_state': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'type': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}},
-               {'classification': {'$regex': '.*' + filter_arg + '.*', '$options': 'i'}}]
+    if filter_args:
+        tmp_and = []
+        tmp_or = []
 
-        filter_fields['$or'] = tmp
+        for filter_arg in filter_args:
+            values = '|'.join(map(str, filter_arg['values']))
+            regex = {'$regex': '.*' + values + '.*', '$options': 'i'}
+            field = filter_arg['field']
+
+            if field == 'all':
+                tmp_or = [{'url': regex},
+                          {'name': regex},
+                          {'useragent': regex},
+                          {'_state': regex},
+                          {'type': regex},
+                          {'end_time': regex},
+                          {'classification': regex}]
+                break
+            else:
+                tmp_and.append({field: regex})
+
+        if len(tmp_or) > 0:
+            filter_fields['$or'] = tmp_or
+        elif len(tmp_and) > 0:
+            filter_fields['$and'] = tmp_and
 
     jobs = get_paged_documents(db.jobs,
                                page=page,

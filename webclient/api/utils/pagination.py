@@ -5,46 +5,65 @@ from bson import json_util
 
 
 def parse_url_parameters(args):
-    sort = args.get('sort', None)
+    sort = args.get('sort')
 
-    if sort is None:
+    if not sort:
         sort = '_id|1'
 
-    r = re.compile('\w+\|\w+')
+    sort_regex = re.compile('\w+\|\w+')
 
-    if not r.match(sort):
+    if not sort_regex.match(sort):
         sort = '_id|1'
 
-    sortargs = sort.split('|')
+    sort_args = sort.split('|')
 
-    if len(sortargs) != 2:
-        sortargs[0] = '_id'
-        sortargs[1] = '1'
+    if len(sort_args) != 2:
+        sort_args[0] = '_id'
+        sort_args[1] = '1'
 
-    if sortargs[1] == 'desc':
-        sortargs[1] = '-1'
+    if sort_args[1] == 'desc':
+        sort_args[1] = '-1'
     else:
-        sortargs[1] = '1'
+        sort_args[1] = '1'
 
-    pagesize = args.get('per_page', None)
-    page = args.get('page', None)
+    pagesize = args.get('per_page')
+    page = args.get('page')
 
-    if page is None or page == 0:
+    if not page:
         page = 1
 
-    if pagesize is None or pagesize == 0:
+    if not pagesize:
         pagesize = 10
 
-    filter_arg = args.get('filter', None)
+    filter_args = None
+    filter_string = args.get('filter')
 
-    if filter_arg is None or filter_arg == '':
-        filter_arg = None
+    if filter_string:
+        filter_regex = re.compile('(\w+(\|\w+)+)(\|\|(\w+(\|\w+)+))*')
 
-    return page, pagesize, sortargs, filter_arg
+        if filter_regex.match(filter_string):
+            tmp_list = sort.split('||')
+
+            for entry in tmp_list:
+                args_list = entry.split('|')
+
+                if len(args_list) < 2:
+                    continue
+
+                filter_arg = {
+                    'field': args_list[0],
+                    'values': args_list[1:]
+                }
+
+                if filter_arg['field'] == 'all':
+                    return page, pagesize, sort_args, [filter_arg]
+
+                filter_args.append(filter_arg)
+
+    return page, pagesize, sort_args, filter_args
 
 
 def get_paged_documents(collection, page, pagesize, sort, filter_fields=None, collums=None):
-
     if pagesize < 0:
         query = collection.find({}, collums is None if {} else collums)
     else:
