@@ -11,13 +11,32 @@ def get_schedules(args):
 
     :param args: pagination and filtering arguments
     """
-    page, pagesize, sort, filter_arg = parse_url_parameters(args)
+    page, pagesize, sort, filter_args = parse_url_parameters(args)
+
+    filter_fields = {}
+
+    if filter_args:
+        tmp = []
+
+        for filter_arg in filter_args:
+            values = filter_arg['values']
+            field = filter_arg['field']
+            value = '|'.join(map(str, values))
+            regex = {'$regex': '.*(' + value + ').*', '$options': 'ix'}
+
+            if field == 'all':
+                tmp.extend([{'name': regex},
+                            {'enabled': regex}])
+                break
+
+        if len(tmp) > 0:
+            filter_fields['$or'] = tmp
 
     schedules = get_paged_documents(db.schedules,
                                     page=page,
                                     pagesize=pagesize,
                                     sort=sort,
-                                    collums=None)
+                                    filter_fields=filter_fields)
 
     # Convert unix timestamp to ISO 8601 string
     for schedule in schedules['data']:

@@ -65,7 +65,6 @@ def get_jobs(args, schedule_id=None):
                                page=page,
                                pagesize=pagesize,
                                sort=sort,
-                               collums=None,
                                filter_fields=filter_fields)
 
     json_string = json.dumps(jobs)
