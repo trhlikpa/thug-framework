@@ -288,9 +288,9 @@ class Codes(Resource):
         return get_subresource(task_id, 'codes')
 
 
-class Behaviours(Resource):
+class behaviors(Resource):
     """
-    Resource representing '/tasks/<task_id>/behaviours/' api route
+    Resource representing '/tasks/<task_id>/behaviors/' api route
 
     available methods: GET
     """
@@ -298,15 +298,15 @@ class Behaviours(Resource):
     @handle_errors
     def get(cls, task_id):
         """
-        Returns behaviours
+        Returns behaviors
 
-        GET /tasks/<task_id>/behaviours/
+        GET /tasks/<task_id>/behaviors/
 
         URL parameters:
 
         :task_id: task ID
         """
-        return get_subresource(task_id, 'behaviours')
+        return get_subresource(task_id, 'behaviors')
 
 
 class Certificates(Resource):
