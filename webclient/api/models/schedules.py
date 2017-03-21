@@ -110,6 +110,11 @@ def delete_schedule(schedule_id):
     :param schedule_id: schedule ID
     :return: True if successful, False otherwise
     """
+    schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
+
+    for job_id in schedule['previous_runs']:
+        db.jobs.update_one({'_id': job_id}, {'$set': {'schedule_id': None}})
+
     result_db = db.schedules.delete_one({'_id': ObjectId(schedule_id)})
 
     if result_db.deleted_count > 0:
