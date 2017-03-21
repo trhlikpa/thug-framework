@@ -86,7 +86,7 @@ class MongoEntry(ScheduleEntry):
         self.run_after = self.model['run_after']
 
         # Fix name of the next job iteration
-        self.model['args'][0]['name'] = self.name + '_' + str(self.total_run_count + 1)
+        self.model['args'][0]['name'] = self.name + '_' + str(self.total_run_count)
         self.args[0]['name'] = self.model['args'][0]['name']
 
     def __next__(self):
