@@ -28,7 +28,7 @@ def create_list():
 
 def get_useragents():
     """
-    Return list with thug user agents
+    Returns list with thug user agents
     """
     if not __useragents:
         create_list()

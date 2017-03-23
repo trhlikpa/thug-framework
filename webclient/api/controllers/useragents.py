@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from flask import Response
 from webclient.api.models.useragents import get_useragents
+from webclient.api.utils.decorators import handle_errors
 
 
 class UserAgentList(Resource):
@@ -10,6 +11,7 @@ class UserAgentList(Resource):
     available methods: GET
     """
     @classmethod
+    @handle_errors
     def get(cls):
         """
         Returns thug useragents
