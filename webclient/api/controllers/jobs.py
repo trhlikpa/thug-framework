@@ -123,7 +123,7 @@ class JobList(Resource):
         parser.add_argument('thug_time_limit', type=int, help='Time limit for thug execution')
         parser.add_argument('dom_events', type=str, help='DOM event separated by comma')
         parser.add_argument('no_cache', type=bool, help='Disable local web cache')
-        parser.add_argument('web_tracking', type=bool, help='Disable web tracking')
+        parser.add_argument('web_tracking', type=bool, help='Enable web tracking inspection')
         parser.add_argument('url_classifiers', type=list, location='json', help='URL classifiers')
         parser.add_argument('html_classifiers', type=list, location='json', help='HTML classifiers')
         parser.add_argument('js_classifiers', type=list, location='json', help='JS classifiers')

@@ -77,6 +77,9 @@ def get_job(job_id):
 
     :param job_id: job ID
     """
+    if not job_id or len(job_id) != 24:
+        return None
+
     normalize_job_states()
     job = db.jobs.find_one({'_id': ObjectId(job_id)})
 
@@ -178,6 +181,9 @@ def delete_job(job_id):
     :param job_id: job ID
     :return: True if successful, False otherwise
     """
+    if not job_id or len(job_id) != 24:
+        return None
+
     return revoke_job(job_id)
 
 
@@ -189,6 +195,9 @@ def update_job(job_id, data):
     :param data: fields to change
     :return: job ID
     """
+    if not job_id or len(job_id) != 24:
+        return None
+
     job_name = data.get('name')
 
     db.jobs.update_one({'_id': ObjectId(job_id)}, {'$set': {'name': job_name}})

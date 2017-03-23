@@ -53,6 +53,9 @@ def get_schedule(schedule_id):
 
     :param schedule_id: Schedule ID
     """
+    if not schedule_id or len(schedule_id) != 24:
+        return None
+
     schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
 
     # Convert python datetime object to ISO 8601 string
@@ -110,6 +113,9 @@ def delete_schedule(schedule_id):
     :param schedule_id: schedule ID
     :return: True if successful, False otherwise
     """
+    if not schedule_id or len(schedule_id) != 24:
+        return None
+
     schedule = db.schedules.find_one({'_id': ObjectId(schedule_id)})
 
     for job_id in schedule['previous_runs']:
@@ -131,6 +137,9 @@ def update_schedule(schedule_id, data):
     :param data: field to update
     :return: schedule ID
     """
+    if not schedule_id or len(schedule_id) != 24:
+        return None
+
     enabled = data.get('enabled', False)
     schedule_name = data.get('name')
 

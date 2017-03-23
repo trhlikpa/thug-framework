@@ -64,6 +64,9 @@ def get_task(task_id):
 
     :param task_id: task ID
     """
+    if not task_id or len(task_id) != 24:
+        return None
+
     normalize_task_states()
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
@@ -77,6 +80,9 @@ def delete_task(task_id):
     :param task_id: task ID
     :return: True if successful, False otherwise
     """
+    if not task_id or len(task_id) != 24:
+        return None
+
     return revoke_task(task_id)
 
 
@@ -86,6 +92,9 @@ def get_task_geolocation(task_id):
 
     :param task_id: task ID
     """
+    if not task_id or len(task_id) != 24:
+        return None
+
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if not task:
@@ -103,12 +112,18 @@ def get_task_subresource(task_id, resource_name):
     :param task_id: task ID
     :param resource_name: resource name
     """
+    if not task_id or len(task_id) != 24:
+        return None
+
     task = db.tasks.find_one({'_id': ObjectId(task_id)})
 
     if not task:
         return None
 
     analysis = db.analyses.find_one({'_id': ObjectId(task['analysis_id'])})
+
+    if not analysis:
+        return None
 
     if resource_name == 'options':
         resource = [analysis]
