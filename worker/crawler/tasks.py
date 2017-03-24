@@ -63,15 +63,15 @@ def crawl(self, job_id, signatures=None):
         # Scrapy process configuration
         process = CrawlerProcess({
             'USER_AGENT': user_agent,
-            'DEPTH_LIMIT': args.get('depth_limit', 1),
-            'DOWNLOAD_DELAY': args.get('download_delay', 0),
-            'RANDOMIZE_DOWNLOAD_DELAY': args.get('randomize_download_delay', False),
-            'REDIRECT_MAX_TIMES': args.get('redirect_max_times', 30),
-            'ROBOTSTXT_OBEY': args.get('robotstxt_obey', False)
+            'DEPTH_LIMIT': args.get('depth_limit') or 1,
+            'DOWNLOAD_DELAY': args.get('download_delay') or 0,
+            'RANDOMIZE_DOWNLOAD_DELAY': bool(args.get('randomize_download_delay')),
+            'REDIRECT_MAX_TIMES': args.get('redirect_max_times') or 30,
+            'ROBOTSTXT_OBEY': bool(args.get('robotstxt_obey'))
         })
 
         allowed_domains = args.get('allowed_domains')
-        only_internal = args.get('only_internal', True)
+        only_internal = bool(args.get('only_internal'))
 
         if allowed_domains is None or len(allowed_domains) < 1:
             if only_internal:

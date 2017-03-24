@@ -126,20 +126,20 @@ def create_job(data):
         'adobepdf': data.get('adobepdf'),
         'proxy': data.get('proxy'),
         'dom_events': data.get('dom_events'),
-        'no_cache': data.get('no_cache') or False,
-        'web_tracking': data.get('web_tracking') or False,
+        'no_cache': bool(data.get('no_cache')),
+        'web_tracking': bool(data.get('web_tracking')),
         'url_classifiers': data.get('url_classifiers'),
         'html_classifiers': data.get('html_classifiers'),
         'js_classifiers': data.get('js_classifiers'),
         'vb_classifiers': data.get('vb_classifiers'),
         'sample_classifiers': data.get('sample_classifiers'),
         'depth_limit': data.get('depth_limit') or 1,
-        'only_internal': data.get('only_internal') or True,
+        'only_internal': bool(data.get('only_internal')),
         'allowed_domains': data.get('allowed_domains'),
         'download_delay': data.get('download_delay') or 0,
-        'randomize_download_delay': data.get('randomize_download_delay') or False,
+        'randomize_download_delay': bool(data.get('randomize_download_delay')),
         'redirect_max_times': data.get('redirect_max_times') or 30,
-        'robotstxt_obey': data.get('robotstxt_obey') or False
+        'robotstxt_obey': bool(data.get('robotstxt_obey'))
     }
 
     job_data = {
