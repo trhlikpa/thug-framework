@@ -104,6 +104,10 @@ def crawl(self, job_id, signatures=None):
             'crawler_end_time': end_time
         }
 
+        if len(urls) < 1:
+            output_data['_state'] = 'NO TASKS FOUND'
+            output_data['classification'] = 'NO TASKS FOUND'
+
     except (AttributeError, ValueError, DatabaseRecordError, UrlFormatError, UrlNotReachedError, IOError) as error:
         end_time = datetime.utcnow().isoformat()
 
