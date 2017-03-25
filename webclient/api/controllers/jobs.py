@@ -110,7 +110,7 @@ class JobList(Resource):
 
         # Schedule params
         parser.add_argument('eta', type=str, help='Estimated time of arival; ISO 8601 string format')
-        parser.add_argument('max_run_count', type=str, help='Number of job runs')
+        parser.add_argument('max_run_count', type=int, help='Number of job runs')
         parser.add_argument('cron', type=dict, help='Schedule in cron format')
         parser.add_argument('interval', type=dict, help='Schedule defined as intervals')
 
