@@ -1,7 +1,8 @@
 from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
-from webclient.api.models.tasks import get_task, delete_task, get_tasks, get_task_subresource, get_task_geolocation
+from webclient.api.models.tasks import get_task, delete_task, get_tasks
+from webclient.api.models.tasksubresources import get_task_subresource, get_task_geolocation
 from webclient.api.utils.decorators import handle_errors
 
 
@@ -135,13 +136,13 @@ def get_subresource(task_id, resource_name):
     :param task_id: task ID
     :param resource_name: name of task subresource
     """
-    resource = get_task_subresource(task_id, resource_name)
+    resource = get_task_subresource(resource_name, task_id)
     response = Response(json_util.dumps({resource_name: resource}), mimetype='application/json')
 
     return response
 
 
-class Options(Resource):
+class OptionsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/options/' api route
 
@@ -162,7 +163,7 @@ class Options(Resource):
         return get_subresource(task_id, 'options')
 
 
-class Connections(Resource):
+class ConnectionsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/connections/' api route
 
@@ -183,7 +184,7 @@ class Connections(Resource):
         return get_subresource(task_id, 'connections')
 
 
-class Locations(Resource):
+class LocationsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/locations/' api route
 
@@ -204,7 +205,7 @@ class Locations(Resource):
         return get_subresource(task_id, 'locations')
 
 
-class Samples(Resource):
+class SamplesByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/samples/' api route
 
@@ -225,7 +226,7 @@ class Samples(Resource):
         return get_subresource(task_id, 'samples')
 
 
-class Exploits(Resource):
+class ExploitsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/exploits/' api route
 
@@ -246,7 +247,7 @@ class Exploits(Resource):
         return get_subresource(task_id, 'exploits')
 
 
-class Classifiers(Resource):
+class ClassifiersByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/classifiers/' api route
 
@@ -267,7 +268,7 @@ class Classifiers(Resource):
         return get_subresource(task_id, 'classifiers')
 
 
-class Codes(Resource):
+class CodesByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/codes/' api route
 
@@ -288,7 +289,7 @@ class Codes(Resource):
         return get_subresource(task_id, 'codes')
 
 
-class behaviors(Resource):
+class BehaviorsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/behaviors/' api route
 
@@ -309,7 +310,7 @@ class behaviors(Resource):
         return get_subresource(task_id, 'behaviors')
 
 
-class Certificates(Resource):
+class CertificatesByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/certificates/' api route
 
@@ -330,7 +331,7 @@ class Certificates(Resource):
         return get_subresource(task_id, 'certificates')
 
 
-class Graphs(Resource):
+class GraphsByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/graphs/' api route
 
@@ -351,7 +352,7 @@ class Graphs(Resource):
         return get_subresource(task_id, 'graphs')
 
 
-class Virustotal(Resource):
+class VirustotalByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/virustotal/' api route
 
@@ -372,7 +373,7 @@ class Virustotal(Resource):
         return get_subresource(task_id, 'virustotal')
 
 
-class Honeyagent(Resource):
+class HoneyagentByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/honeyagent/' api route
 
@@ -393,7 +394,7 @@ class Honeyagent(Resource):
         return get_subresource(task_id, 'honeyagent')
 
 
-class Androguard(Resource):
+class AndroguardByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/androguard/' api route
 
@@ -414,7 +415,7 @@ class Androguard(Resource):
         return get_subresource(task_id, 'androguard')
 
 
-class Peepdf(Resource):
+class PeepdfByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/peepdf/' api route
 
@@ -435,7 +436,7 @@ class Peepdf(Resource):
         return get_subresource(task_id, 'peepdf')
 
 
-class Geolocation(Resource):
+class GeolocationByTask(Resource):
     """
     Resource representing '/tasks/<task_id>/geolocation/' api route
 

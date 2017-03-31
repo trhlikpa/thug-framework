@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api
-from webclient.api.controllers import tasks, jobs, schedules, useragents, domevents, auth, plugins
+from webclient.api.controllers import tasks, jobs, schedules, useragents, domevents, auth, plugins, tasksubresources
 
 api_blueprint = Blueprint('api', __name__, url_prefix='/api/v1.0')
 api = Api(api_blueprint)
@@ -11,21 +11,29 @@ api.add_resource(tasks.Task, '/tasks/<task_id>/')
 api.add_resource(tasks.TasksByJob, '/jobs/<job_id>/tasks/')
 
 # Task subresources
-api.add_resource(tasks.Options, '/tasks/<task_id>/options/')
-api.add_resource(tasks.Connections, '/tasks/<task_id>/connections/')
-api.add_resource(tasks.Locations, '/tasks/<task_id>/locations/')
-api.add_resource(tasks.Samples, '/tasks/<task_id>/samples/')
-api.add_resource(tasks.Exploits, '/tasks/<task_id>/exploits/')
-api.add_resource(tasks.Classifiers, '/tasks/<task_id>/classifiers/')
-api.add_resource(tasks.Codes, '/tasks/<task_id>/codes/')
-api.add_resource(tasks.behaviors, '/tasks/<task_id>/behaviors/')
-api.add_resource(tasks.Certificates, '/tasks/<task_id>/certificates/')
-api.add_resource(tasks.Graphs, '/tasks/<task_id>/graphs/')
-api.add_resource(tasks.Virustotal, '/tasks/<task_id>/virustotal/')
-api.add_resource(tasks.Honeyagent, '/tasks/<task_id>/honeyagent/')
-api.add_resource(tasks.Androguard, '/tasks/<task_id>/androguard/')
-api.add_resource(tasks.Peepdf, '/tasks/<task_id>/peepdf/')
-api.add_resource(tasks.Geolocation, '/tasks/<task_id>/geolocation/')
+api.add_resource(tasksubresources.Urls, '/urls/')
+api.add_resource(tasksubresources.Connections, '/connections/')
+api.add_resource(tasksubresources.Locations, '/locations/')
+api.add_resource(tasksubresources.Samples, '/samples/')
+api.add_resource(tasksubresources.Exploits, '/exploits/')
+api.add_resource(tasksubresources.Behaviors, '/behaviors/')
+
+# Task subresources
+api.add_resource(tasks.OptionsByTask, '/tasks/<task_id>/options/')
+api.add_resource(tasks.ConnectionsByTask, '/tasks/<task_id>/connections/')
+api.add_resource(tasks.LocationsByTask, '/tasks/<task_id>/locations/')
+api.add_resource(tasks.SamplesByTask, '/tasks/<task_id>/samples/')
+api.add_resource(tasks.ExploitsByTask, '/tasks/<task_id>/exploits/')
+api.add_resource(tasks.ClassifiersByTask, '/tasks/<task_id>/classifiers/')
+api.add_resource(tasks.CodesByTask, '/tasks/<task_id>/codes/')
+api.add_resource(tasks.BehaviorsByTask, '/tasks/<task_id>/behaviors/')
+api.add_resource(tasks.CertificatesByTask, '/tasks/<task_id>/certificates/')
+api.add_resource(tasks.GraphsByTask, '/tasks/<task_id>/graphs/')
+api.add_resource(tasks.VirustotalByTask, '/tasks/<task_id>/virustotal/')
+api.add_resource(tasks.HoneyagentByTask, '/tasks/<task_id>/honeyagent/')
+api.add_resource(tasks.AndroguardByTask, '/tasks/<task_id>/androguard/')
+api.add_resource(tasks.PeepdfByTask, '/tasks/<task_id>/peepdf/')
+api.add_resource(tasks.GeolocationByTask, '/tasks/<task_id>/geolocation/')
 
 # Jobs
 api.add_resource(jobs.JobList, '/jobs/')

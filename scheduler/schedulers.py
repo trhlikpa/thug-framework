@@ -121,8 +121,13 @@ class MongoEntry(ScheduleEntry):
         updated_data = {
             'last_run_at': self.model['last_run_at'],
             'total_run_count': self.model['total_run_count'],
-            'next_run': (datetime.utcnow() + self.schedule.remaining_estimate(self.model['last_run_at'])).isoformat()
         }
+
+        if self.model['enabled'] and self.model['total_run_count'] < self.model['max_run_count']:
+            updated_data['next_run'] = (datetime.utcnow() + self.schedule.remaining_estimate(
+                self.model['last_run_at'])).isoformat()
+        else:
+            updated_data['next_run'] = None
 
         db.schedules.update_one({'_id': ObjectId(self.id)}, {'$set': updated_data})
 
