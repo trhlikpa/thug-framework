@@ -102,7 +102,7 @@ class JobList(Resource):
         parser = reqparse.RequestParser()
 
         # General params
-        parser.add_argument('name', type=str, help='Name of the job', required=True)
+        parser.add_argument('name', type=unicode, help='Name of the job', required=True)
         parser.add_argument('url', type=str, help='URL to analyze', required=True)
         parser.add_argument('useragent', type=str, help='Browser personality', required=True)
         parser.add_argument('type', type=str, help='Job type (singleurl or extensive)', required=True,
@@ -169,7 +169,7 @@ class JobList(Resource):
         parser.add_argument('sort', type=str, location='args')
         parser.add_argument('page', type=int, location='args')
         parser.add_argument('per_page', type=int, location='args')
-        parser.add_argument('filter', type=str, location='args')
+        parser.add_argument('filter', type=unicode, location='args')
 
         args = parser.parse_args()
 
@@ -211,7 +211,7 @@ class JobsBySchedule(Resource):
         parser.add_argument('sort', type=str, location='args')
         parser.add_argument('page', type=int, location='args')
         parser.add_argument('per_page', type=int, location='args')
-        parser.add_argument('filter', type=str, location='args')
+        parser.add_argument('filter', type=unicode, location='args')
 
         args = parser.parse_args()
 

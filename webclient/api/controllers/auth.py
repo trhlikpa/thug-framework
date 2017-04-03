@@ -63,7 +63,7 @@ class Register(Resource):
         :return: Newly created user ID
         """
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, help='User name', required=True)
+        parser.add_argument('name', type=unicode, help='User name', required=True)
         parser.add_argument('email', type=str, help='User email address', required=True)
         parser.add_argument('password', type=str, help='User password', required=True)
         parser.add_argument('password_confirm', type=str, help='Password confirmation', required=True)

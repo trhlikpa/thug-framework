@@ -77,7 +77,7 @@ class TaskList(Resource):
         parser.add_argument('sort', type=str, location='args')
         parser.add_argument('page', type=int, location='args')
         parser.add_argument('per_page', type=int, location='args')
-        parser.add_argument('filter', type=str, location='args')
+        parser.add_argument('filter', type=unicode, location='args')
 
         args = parser.parse_args()
 
@@ -119,7 +119,7 @@ class TasksByJob(Resource):
         parser.add_argument('sort', type=str, location='args')
         parser.add_argument('page', type=int, location='args')
         parser.add_argument('per_page', type=int, location='args')
-        parser.add_argument('filter', type=str, location='args')
+        parser.add_argument('filter', type=unicode, location='args')
 
         args = parser.parse_args()
 
