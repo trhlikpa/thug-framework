@@ -21,7 +21,7 @@ def get_schedules(args):
         for filter_arg in filter_args:
             values = filter_arg['values']
             field = filter_arg['field']
-            value = '|'.join(map(str, values))
+            value = '|'.join(map(unicode, values))
             regex = {'$regex': '.*(' + value + ').*', '$options': 'ix'}
 
             if field == 'all':

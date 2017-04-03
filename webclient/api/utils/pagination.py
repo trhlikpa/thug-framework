@@ -39,7 +39,7 @@ def parse_url_parameters(args):
     filter_string = args.get('filter')
 
     if filter_string:
-        filter_regex = re.compile('(\w+(\|\w+)+)(\|\|(\w+(\|\w+)+))*')
+        filter_regex = re.compile('(\w+(\|\w+)+)(\|\|(\w+(\|\w+)+))*', re.UNICODE)
 
         if filter_regex.match(filter_string):
             tmp_list = filter_string.split('||')
