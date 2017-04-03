@@ -1,8 +1,8 @@
-import traceback
 from bson import json_util
-from flask_restful import Resource, abort, reqparse
+from flask_restful import Resource, reqparse
 from flask import Response
 from webclient.api.models.users import validate_user, create_user
+from webclient.api.utils.decorators import handle_errors
 
 
 class Login(Resource):
@@ -12,6 +12,7 @@ class Login(Resource):
     available methods: POST
     """
     @classmethod
+    @handle_errors
     def post(cls):
         """
         Logins user
@@ -33,12 +34,8 @@ class Login(Resource):
         email = args.get('email')
         password = args.get('password')
 
-        try:
-            token = validate_user(email, password)
-            return {'token': token}
-        except Exception as error:
-            traceback.print_exc()
-            abort(400, message='Error while loging in: %s' % str(error))
+        token = validate_user(email, password)
+        return {'token': token}
 
 
 class Register(Resource):
@@ -48,6 +45,7 @@ class Register(Resource):
     available methods: POST
     """
     @classmethod
+    @handle_errors
     def post(cls):
         """
         Creates user
@@ -75,12 +73,7 @@ class Register(Resource):
         password_confirm = args.get('password_confirm')
         name = args.get('name')
 
-        user_id = None
-        try:
-            user_id = create_user(name, email, password, password_confirm)
-        except Exception as error:
-            traceback.print_exc()
-            abort(400, message='Error while creating account: %s' % str(error))
-
+        user_id = create_user(name, email, password, password_confirm)
         response = Response(json_util.dumps({'user': user_id}), mimetype='application/json')
+
         return response

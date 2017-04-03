@@ -3,7 +3,7 @@ from flask import Response
 from flask_restful import Resource, reqparse
 from webclient.api.models.tasks import get_task, delete_task, get_tasks
 from webclient.api.models.tasksubresources import get_task_subresource, get_task_geolocation
-from webclient.api.utils.decorators import handle_errors
+from webclient.api.utils.decorators import handle_errors, login_required, validate_user
 
 
 class Task(Resource):
@@ -14,6 +14,7 @@ class Task(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns Task with specified task_id
@@ -32,6 +33,8 @@ class Task(Resource):
 
     @classmethod
     @handle_errors
+    @validate_user
+    @login_required
     def delete(cls, task_id):
         """
         Deletes Task with specified task_id
@@ -57,6 +60,7 @@ class TaskList(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns list of tasks
@@ -95,6 +99,7 @@ class TasksByJob(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, job_id):
         """
         Returns list of tasks with specified job_id
@@ -150,6 +155,7 @@ class OptionsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns options
@@ -171,6 +177,7 @@ class ConnectionsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns connections
@@ -192,6 +199,7 @@ class LocationsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns locations
@@ -213,6 +221,7 @@ class SamplesByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns samples
@@ -234,6 +243,7 @@ class ExploitsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns exploits
@@ -255,6 +265,7 @@ class ClassifiersByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns classifiers
@@ -276,6 +287,7 @@ class CodesByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns codes
@@ -297,6 +309,7 @@ class BehaviorsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns behaviors
@@ -318,6 +331,7 @@ class CertificatesByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns certificates
@@ -339,6 +353,7 @@ class GraphsByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns graphs
@@ -360,6 +375,7 @@ class VirustotalByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns virustotal document
@@ -381,6 +397,7 @@ class HoneyagentByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns honeyagent document
@@ -402,6 +419,7 @@ class AndroguardByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns androguard document
@@ -423,6 +441,7 @@ class PeepdfByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns peepdf document
@@ -444,6 +463,7 @@ class GeolocationByTask(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, task_id):
         """
         Returns geolocation

@@ -6,6 +6,7 @@ from flask import request, g
 from flask_restful import abort
 from webclient import config
 from webclient.api.models.users import get_user
+from werkzeug import exceptions
 
 
 def login_required(func):
@@ -18,7 +19,7 @@ def login_required(func):
     def decorator(*args, **kwargs):
         try:
             if 'authorization' not in request.headers:
-                abort(404, message='You need log in to access protected resource')
+                abort(401, message='You need log in to access protected resource')
 
             token = request.headers.get('authorization')
             decoded_token = jwt.decode(token, config.SECRET_KEY, algorithm='HS256')
@@ -26,12 +27,12 @@ def login_required(func):
             g.user = get_user(user_id)
 
             if g.user is None:
-                abort(404, message='Invalid user id')
+                abort(401, message='Invalid user id')
 
             return func(*args, **kwargs)
 
         except InvalidTokenError as error:
-            abort(400, message='Error while decoding token: %s' % str(error))
+            abort(401, message='Error while decoding token: %s' % str(error))
 
     return decorator
 
@@ -47,7 +48,7 @@ def validate_user(func):
         user_id = kwargs.get('user_id')
 
         if user_id != g.user['_id']:
-            abort(404, message='You need permision to access this resource')
+            abort(401, message='You need permision to access this resource')
 
         return func(*args, **kwargs)
 
@@ -65,6 +66,10 @@ def handle_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as error:
+            if isinstance(error, exceptions.Unauthorized):
+                traceback.print_exc()
+                raise error
+
             traceback.print_exc()
             abort(500, message='Error while processing request: %s' % str(error))
 

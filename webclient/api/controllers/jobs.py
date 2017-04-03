@@ -2,7 +2,7 @@ from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
 from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
-from webclient.api.utils.decorators import handle_errors
+from webclient.api.utils.decorators import handle_errors, login_required, validate_user
 
 
 class Job(Resource):
@@ -13,6 +13,7 @@ class Job(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, job_id):
         """
         Returns Job with specified job_id
@@ -31,6 +32,8 @@ class Job(Resource):
 
     @classmethod
     @handle_errors
+    @validate_user
+    @login_required
     def delete(cls, job_id):
         """
         Deletes Job with specified job_id
@@ -49,6 +52,8 @@ class Job(Resource):
 
     @classmethod
     @handle_errors
+    @validate_user
+    @login_required
     def put(cls, job_id):
         """
         Updates Job with specified job_id
@@ -83,6 +88,7 @@ class JobList(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def post(cls):
         """
         Creates new job
@@ -149,6 +155,7 @@ class JobList(Resource):
 
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns list of jobs
@@ -187,6 +194,7 @@ class JobsBySchedule(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, schedule_id):
         """
         Returns list of jobs with specified schedule_id

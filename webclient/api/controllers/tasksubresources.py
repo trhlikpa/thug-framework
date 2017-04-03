@@ -2,7 +2,7 @@ from bson import json_util
 from flask import Response
 from flask_restful import Resource
 from webclient.api.models.tasksubresources import get_task_subresource
-from webclient.api.utils.decorators import handle_errors
+from webclient.api.utils.decorators import handle_errors, login_required
 
 
 def get_subresource(resource_name):
@@ -25,6 +25,7 @@ class Urls(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns options
@@ -42,6 +43,7 @@ class Connections(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns connections
@@ -59,6 +61,7 @@ class Locations(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns locations
@@ -76,6 +79,7 @@ class Samples(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns samples
@@ -93,6 +97,7 @@ class Exploits(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns exploits
@@ -110,6 +115,7 @@ class Behaviors(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns behaviors

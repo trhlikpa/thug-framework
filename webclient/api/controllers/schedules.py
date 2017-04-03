@@ -2,7 +2,7 @@ from bson import json_util
 from flask import Response
 from flask_restful import Resource, reqparse
 from webclient.api.models.schedules import get_schedule, get_schedules, delete_schedule, update_schedule
-from webclient.api.utils.decorators import handle_errors
+from webclient.api.utils.decorators import handle_errors, login_required, validate_user
 
 
 class Schedule(Resource):
@@ -13,6 +13,7 @@ class Schedule(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls, schedule_id):
         """
         Returns Schedule with specified schedule_id
@@ -31,6 +32,8 @@ class Schedule(Resource):
 
     @classmethod
     @handle_errors
+    @validate_user
+    @login_required
     def delete(cls, schedule_id):
         """
         Deletes Schedule with specified schedule_id
@@ -49,6 +52,8 @@ class Schedule(Resource):
 
     @classmethod
     @handle_errors
+    @validate_user
+    @login_required
     def put(cls, schedule_id):
         """
         Updates Schedule with specified schedule_id
@@ -85,6 +90,7 @@ class ScheduleList(Resource):
     """
     @classmethod
     @handle_errors
+    @login_required
     def get(cls):
         """
         Returns list of schedules
