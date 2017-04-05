@@ -5,13 +5,14 @@ from worker.dbcontext import db
 
 
 @celery.task(bind=True)
-def analyze(self, job_id, url):
+def analyze(self, job_id, url, submitter_id):
     """
     Analyses url with use of thug honeypot and saves results in mongo database
 
     :param self: celery task object
     :param job_id: job ID to load configuration with
     :param url: url to analyze
+    :param submitter_id: submitter email
     """
     # Lazy load of task dependencies
     from thugapi import Thug
@@ -31,6 +32,9 @@ def analyze(self, job_id, url):
 
         if url is None:
             raise UrlNotFoundError('URL is missing')
+
+        if submitter_id is None:
+            raise DatabaseRecordError('Submitter not found')
 
         if not check_url(url):
             raise UrlNotReachedError('Specified URL cannot be reached')

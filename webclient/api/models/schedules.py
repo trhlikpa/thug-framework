@@ -65,12 +65,14 @@ def get_schedule(schedule_id):
     return schedule
 
 
-def create_schedule(task, name, max_run_count, run_after, cron=None, interval=None, args=None, kwargs=None, opt=None):
+def create_schedule(task, name, submitter_id, max_run_count, run_after, cron=None, interval=None, args=None,
+                    kwargs=None, opt=None):
     """
     Creates new schedule
 
     :param task: celery task
     :param name: schedule name
+    :param submitter_id: submitter email
     :param max_run_count: maximum number of celery task iterations
     :param run_after: run first celery task after
     :param cron: crontab type schedule
@@ -88,6 +90,7 @@ def create_schedule(task, name, max_run_count, run_after, cron=None, interval=No
         '_id': schedule_id,
         'task': task,
         'name': name,
+        'submitter_id': submitter_id,
         'enabled': True,
         'args': args,
         'kwargs': kwargs,

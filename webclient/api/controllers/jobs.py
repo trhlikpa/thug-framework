@@ -1,5 +1,5 @@
 from bson import json_util
-from flask import Response
+from flask import Response, g
 from flask_restful import Resource, reqparse
 from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
 from webclient.api.utils.decorators import handle_errors, login_required, validate_user
@@ -89,7 +89,7 @@ class JobList(Resource):
     @classmethod
     @handle_errors
     @login_required
-    def post(cls):
+    def post(cls, *args, **kwargs):
         """
         Creates new job
 
@@ -147,6 +147,7 @@ class JobList(Resource):
         parser.add_argument('allowed_domains', type=list, location='json', help='List of allowed domains')
 
         args = parser.parse_args()
+        args['submitter_id'] = g.user['email']
 
         job_id = create_job(args)
         response = Response(json_util.dumps({'job': job_id}), mimetype='application/json')

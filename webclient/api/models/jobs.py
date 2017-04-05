@@ -104,10 +104,9 @@ def create_job(data):
         raise AttributeError('Name is missing')
 
     submitter_id = data.get('submitter_id')
-    '''
+
     if submitter_id is None:
         raise AttributeError('Submitter id is missing')
-    '''
 
     job_type = data.get('type') or 'singleurl'
     user_agent = data.get('useragent') or 'winxpie60'
@@ -166,7 +165,7 @@ def create_job(data):
 
     # Schedule job if cron or interval is present
     if cron or interval:
-        create_schedule(task='worker.tasks.execute_job', name=job_name, args=[job_data],
+        create_schedule(task='worker.tasks.execute_job', name=job_name, submitter_id=submitter_id, args=[job_data],
                         max_run_count=max_run_count, run_after=eta, cron=cron, interval=interval)
         return None
 

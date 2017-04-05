@@ -48,7 +48,7 @@ def execute_job(self, data):
     if data['type'] == 'singleurl':
         for sig in signatures:
             task_id = str(ObjectId())
-            sig.apply_async(args=[job_id, data['url']], task_id=task_id)
+            sig.apply_async(args=[job_id, data['url'], data['submitter_id']], task_id=task_id)
     else:
         crawl.apply_async(args=[job_id, signatures], task_id=str(crawl_id),
                           time_limit=data['crawler_time_limit'], eta=eta)
@@ -68,12 +68,14 @@ def thug_sent_handler(headers=None, body=None, **kwargs):
     # parse args
     job_id = ObjectId(make_tuple(info['argsrepr'])[0])
     url = make_tuple(info['argsrepr'])[1]
+    submitter_id = make_tuple(info['argsrepr'])[2]
 
     after_publish_data = {
         '_id': ObjectId(info['id']),
         '_state': 'PENDING',
         '_error': None,
         'url': url,
+        'submitter_id': submitter_id,
         'submit_time': submit_time,
         'start_time': None,
         'end_time': None,
