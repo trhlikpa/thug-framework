@@ -1,4 +1,5 @@
 import json
+from flask import g
 from bson import ObjectId
 from webclient.api.models.schedules import create_schedule, get_schedule
 from webclient.dbcontext import db
@@ -52,6 +53,8 @@ def get_jobs(args, schedule_id=None):
                     tmp_and.append({field: {'$gte': values[0], '$lte': values[1]}})
                 else:
                     tmp_and.append({field: regex})
+            elif field == 'mine':
+                tmp_and.append({'submitter_id': g.user['email']})
             else:
                 tmp_and.append({field: regex})
 
