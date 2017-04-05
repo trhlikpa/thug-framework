@@ -48,7 +48,8 @@ def handle_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as error:
-            if isinstance(error, exceptions.Unauthorized) or isinstance(error, exceptions.NotFound):
+            if isinstance(error, exceptions.Unauthorized) or isinstance(error, exceptions.NotFound) or \
+                    isinstance(error, exceptions.BadRequest):
                 traceback.print_exc()
                 raise error
 

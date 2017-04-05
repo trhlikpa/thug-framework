@@ -1,8 +1,33 @@
 from bson import json_util
 from flask_restful import Resource, reqparse
-from flask import Response
-from webclient.api.models.users import validate_user, create_user
-from webclient.api.utils.decorators import handle_errors
+from flask import Response, abort, g
+from webclient.api.models.users import validate_user, create_user, change_password
+from webclient.api.utils.decorators import handle_errors, login_required
+
+
+class PasswordChange(Resource):
+    @classmethod
+    @handle_errors
+    @login_required
+    def post(cls):
+        parser = reqparse.RequestParser()
+        parser.add_argument('password', type=str, help='Old login password', required=True)
+        parser.add_argument('new_password', type=str, help='New login password', required=True)
+        parser.add_argument('new_password_confirm', type=str, help='New login password confirmation', required=True)
+
+        args = parser.parse_args()
+
+        if not g.user or not g.user['email']:
+            abort(401, message='Invalid user ID')
+
+        password = args.get('password')
+        new_password = args.get('new_password')
+        new_password_confirm = args.get('new_password_confirm')
+
+        result = change_password(g.user['email'], password, new_password, new_password_confirm)
+        response = Response(json_util.dumps({'result': result}), mimetype='application/json')
+
+        return response
 
 
 class Login(Resource):
@@ -11,6 +36,7 @@ class Login(Resource):
 
     available methods: POST
     """
+
     @classmethod
     @handle_errors
     def post(cls):
@@ -44,6 +70,7 @@ class Register(Resource):
 
     available methods: POST
     """
+
     @classmethod
     @handle_errors
     def post(cls):

@@ -56,3 +56,4 @@ api.add_resource(plugins.PluginsList, '/plugins/')
 # Authentication
 api.add_resource(auth.Login, '/auth/login/')
 api.add_resource(auth.Register, '/auth/register/')
+api.add_resource(auth.PasswordChange, '/auth/passwordchange/')
