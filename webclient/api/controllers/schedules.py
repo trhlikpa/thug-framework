@@ -1,8 +1,26 @@
 from bson import json_util
-from flask import Response
+from flask import Response, abort, g
 from flask_restful import Resource, reqparse
 from webclient.api.models.schedules import get_schedule, get_schedules, delete_schedule, update_schedule
-from webclient.api.utils.decorators import handle_errors, login_required, validate_user
+from webclient.api.utils.decorators import handle_errors, login_required
+
+
+def schedule_belongs_to_user(schedule_id):
+    """
+    Checks if schedule belongs to a specified user
+
+    :param schedule_id: schedule ID
+    """
+    schedule = get_schedule(schedule_id)
+
+    if not schedule:
+        abort(404, message='Schedule not found')
+
+    if not g.user or not g.user['email']:
+        abort(401, message='Invalid user ID')
+
+    if g.user['email'] != schedule['submitter_id']:
+        abort(401, message='You cannot modify this resource')
 
 
 class Schedule(Resource):
@@ -11,6 +29,7 @@ class Schedule(Resource):
 
     available methods: GET, DELETE, PUT
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -32,7 +51,6 @@ class Schedule(Resource):
 
     @classmethod
     @handle_errors
-    @validate_user
     @login_required
     def delete(cls, schedule_id):
         """
@@ -45,6 +63,8 @@ class Schedule(Resource):
 
         :return: True if removed, False otherwise
         """
+        schedule_belongs_to_user(schedule_id)
+
         result = delete_schedule(schedule_id)
         response = Response(json_util.dumps({'schedule': result}), mimetype='application/json')
 
@@ -52,7 +72,6 @@ class Schedule(Resource):
 
     @classmethod
     @handle_errors
-    @validate_user
     @login_required
     def put(cls, schedule_id):
         """
@@ -69,6 +88,8 @@ class Schedule(Resource):
 
         :return: Schedule ID
         """
+        schedule_belongs_to_user(schedule_id)
+
         parser = reqparse.RequestParser()
 
         parser.add_argument('enabled', type=bool, help='Schedule state')
@@ -88,6 +109,7 @@ class ScheduleList(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required

@@ -1,8 +1,26 @@
 from bson import json_util
 from flask import Response, g
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, abort
 from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
-from webclient.api.utils.decorators import handle_errors, login_required, validate_user
+from webclient.api.utils.decorators import handle_errors, login_required
+
+
+def job_belongs_to_user(job_id):
+    """
+    Checks if job belongs to a specified user
+
+    :param job_id: job ID
+    """
+    job = get_job(job_id)
+
+    if not job:
+        abort(404, message='Job not found')
+
+    if not g.user or not g.user['email']:
+        abort(401, message='Invalid user ID')
+
+    if g.user['email'] != job['submitter_id']:
+        abort(401, message='You cannot modify this resource')
 
 
 class Job(Resource):
@@ -11,6 +29,7 @@ class Job(Resource):
 
     available methods: GET, DELETE, PUT
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -32,7 +51,6 @@ class Job(Resource):
 
     @classmethod
     @handle_errors
-    @validate_user
     @login_required
     def delete(cls, job_id):
         """
@@ -45,6 +63,8 @@ class Job(Resource):
 
         :return: True if removed, False otherwise
         """
+        job_belongs_to_user(job_id)
+
         result = delete_job(job_id)
         response = Response(json_util.dumps({'job': result}), mimetype='application/json')
 
@@ -52,7 +72,6 @@ class Job(Resource):
 
     @classmethod
     @handle_errors
-    @validate_user
     @login_required
     def put(cls, job_id):
         """
@@ -68,6 +87,8 @@ class Job(Resource):
 
         :return: Job ID
         """
+        job_belongs_to_user(job_id)
+
         parser = reqparse.RequestParser()
 
         parser.add_argument('name', type=str, help='New name')
@@ -86,10 +107,11 @@ class JobList(Resource):
 
     available methods: GET, POST
     """
+
     @classmethod
     @handle_errors
     @login_required
-    def post(cls, *args, **kwargs):
+    def post(cls):
         """
         Creates new job
 
@@ -193,6 +215,7 @@ class JobsBySchedule(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required

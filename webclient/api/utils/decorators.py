@@ -37,24 +37,6 @@ def login_required(func):
     return decorator
 
 
-def validate_user(func):
-    """
-    Wraps resource method that belongs to specific user
-
-    :param func: resource method
-    """
-    @wraps(func)
-    def decorator(*args, **kwargs):
-        user_id = kwargs.get('user_id')
-
-        if user_id != g.user['_id']:
-            abort(401, message='You need permision to access this resource')
-
-        return func(*args, **kwargs)
-
-    return decorator
-
-
 def handle_errors(func):
     """
     Wraps recource method that requires exceptions handling
@@ -66,7 +48,7 @@ def handle_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as error:
-            if isinstance(error, exceptions.Unauthorized):
+            if isinstance(error, exceptions.Unauthorized) or isinstance(error, exceptions.NotFound):
                 traceback.print_exc()
                 raise error
 

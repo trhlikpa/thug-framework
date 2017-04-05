@@ -1,9 +1,27 @@
 from bson import json_util
-from flask import Response
+from flask import Response, abort, g
 from flask_restful import Resource, reqparse
 from webclient.api.models.tasks import get_task, delete_task, get_tasks
 from webclient.api.models.tasksubresources import get_task_subresource, get_task_geolocation
-from webclient.api.utils.decorators import handle_errors, login_required, validate_user
+from webclient.api.utils.decorators import handle_errors, login_required
+
+
+def task_belongs_to_user(task_id):
+    """
+    Checks if task belongs to a specified user
+
+    :param task_id: task ID
+    """
+    task = get_task(task_id)
+
+    if not task:
+        abort(404, message='Task not found')
+
+    if not g.user or not g.user['email']:
+        abort(401, message='Invalid user ID')
+
+    if g.user['email'] != task['submitter_id']:
+        abort(401, message='You cannot modify this resource')
 
 
 class Task(Resource):
@@ -12,6 +30,7 @@ class Task(Resource):
 
     available methods: GET, DELETE
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -33,7 +52,6 @@ class Task(Resource):
 
     @classmethod
     @handle_errors
-    @validate_user
     @login_required
     def delete(cls, task_id):
         """
@@ -58,6 +76,7 @@ class TaskList(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -97,6 +116,7 @@ class TasksByJob(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -153,6 +173,7 @@ class OptionsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -175,6 +196,7 @@ class ConnectionsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -197,6 +219,7 @@ class LocationsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -219,6 +242,7 @@ class SamplesByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -241,6 +265,7 @@ class ExploitsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -263,6 +288,7 @@ class ClassifiersByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -285,6 +311,7 @@ class CodesByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -307,6 +334,7 @@ class BehaviorsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -329,6 +357,7 @@ class CertificatesByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -351,6 +380,7 @@ class GraphsByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -373,6 +403,7 @@ class VirustotalByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -395,6 +426,7 @@ class HoneyagentByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -417,6 +449,7 @@ class AndroguardByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -439,6 +472,7 @@ class PeepdfByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
@@ -461,6 +495,7 @@ class GeolocationByTask(Resource):
 
     available methods: GET
     """
+
     @classmethod
     @handle_errors
     @login_required
