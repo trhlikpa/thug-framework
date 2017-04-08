@@ -5,7 +5,7 @@
 #
 
 # WORKER IMAGE
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 USER root
 
@@ -27,7 +27,7 @@ RUN apt-get update && \
     libffi-dev \
     graphviz \
     libfuzzy-dev \
-    libjpeg8-dev \
+    libjpeg-dev \
     libssl-dev \
     pkg-config \
     autoconf && \
@@ -59,16 +59,18 @@ COPY ./worker/entrypoint.sh /
 COPY ./worker /opt/project/worker/
 COPY ./config.py /opt/project/worker/
 
-# CREATE USER, ENV_PATHS
-RUN chmod +x /entrypoint.sh
-RUN chmod a+w /etc/thug/
-RUN adduser --disabled-password --gecos '' worker
-
-ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/worker/
 
 # INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
+
+# CREATE USER, ENV_PATH
+RUN groupadd -r worker && \
+  useradd -r -g worker -d /home/worker -s /sbin/nologin -c "worker" worker && \
+  mkdir -p /home/worker && \
+  chown -R worker:worker /home/worker /opt/project /etc/thug /entrypoint.sh
+
+ENV PYTHONPATH /opt/project/
 
 # CLEAN UP
 RUN apt-get -y remove \

@@ -15,26 +15,17 @@ services:
     command: ["uwsgi", "--http", "0.0.0.0:5000", "--uid", "web", "--master", "--module", "app:app", "--processes", "1", "--threads", "8"]
     ports:
       - "5000:5000"
-    volumes:
-      - .:/opt/project
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
     entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "worker", "-l", "DEBUG", "-A", "worker.tasks"]
-    volumes:
-      - .:/opt/project
+    command: ["celery", "worker", "-l", "info", "-A", "worker.tasks"]
 
   scheduler:
     build:
       context: .
       dockerfile: Dockerfile.scheduler
     entrypoint: ["/entrypoint.sh"]
-    command: ["celery", "-l", "DEBUG", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.MongoScheduler", "beat"]
-    volumes:
-      - .:/opt/project
-
-
-
+    command: ["celery", "-l", "info", "-A", "scheduler.schedulers", "-S", "scheduler.schedulers.MongoScheduler", "beat"]

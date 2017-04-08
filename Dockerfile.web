@@ -1,5 +1,5 @@
 # WEBCLIENT IMAGE
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 USER root
 
@@ -26,12 +26,9 @@ RUN pip install setuptools --upgrade
 COPY ./webclient/entrypoint.sh /
 COPY ./webclient /opt/project/webclient/
 COPY ./config.py /opt/project/webclient/
+COPY ./worker /opt/project/worker/
+COPY ./config.py /opt/project/worker/
 
-# CREATE USER, ENV_PATHS
-RUN chmod +x /entrypoint.sh
-RUN adduser --disabled-password --gecos '' web
-
-ENV PYTHONPATH /opt/project/
 WORKDIR /opt/project/webclient/
 
 # INSTALL PYTHON DEPENDENCIES
@@ -42,8 +39,16 @@ RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
     cp /tmp/thug/thug/DOM/personalities/* /opt/project/webclient/api/models/personalities
 
 # IMPORT FRONTEND
-RUN git clone https://github.com/trhlikpa/thug-frontend.git /tmp/frontend && \
+RUN git clone https://github.com/trhlikpa/thug-framework-ui.git /tmp/frontend && \
     cp -r /tmp/frontend/dist/* /opt/project/webclient/frontend
+
+# CREATE USER, ENV_PATH
+RUN groupadd -r web && \
+  useradd -r -g web -d /home/web -s /sbin/nologin -c "webclient" web && \
+  mkdir -p /home/web && \
+  chown -R web:web /home/web /opt/project /entrypoint.sh
+
+ENV PYTHONPATH /opt/project/
 
 # CLEAN UP
 RUN apt-get -y remove \
