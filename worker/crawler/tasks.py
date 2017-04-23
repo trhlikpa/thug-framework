@@ -20,7 +20,7 @@ def crawl(self, job_id, signatures=None):
     from worker.crawler.urlspider import UrlSpider
     from worker.utils.useragents import get_useragent_string
     from worker.utils.netutils import get_top_level_domain, check_url
-    from worker.utils.exceptions import DatabaseRecordError, UrlFormatError, UrlNotReachedError
+    from worker.utils.exceptions import DatabaseRecordError, UrlFormatError, UrlNotReachedError, UrlNotFoundError
 
     output_data = dict()
 
@@ -31,9 +31,13 @@ def crawl(self, job_id, signatures=None):
             raise DatabaseRecordError('Job not found in database')
 
         url = job.get('url')
+        submitter_id = job.get('submitter_id')
 
         if url is None:
-            raise AttributeError('URL is missing')
+            raise UrlNotFoundError('URL is missing')
+
+        if submitter_id is None:
+            raise DatabaseRecordError('Submitter not found')
 
         if not check_url(url):
             raise UrlNotReachedError('Specified URL cannot be reached')
@@ -90,7 +94,18 @@ def crawl(self, job_id, signatures=None):
 
         end_time = datetime.utcnow().isoformat()
 
+        output_data = {
+            'crawler_end_time': end_time
+        }
+
         if signatures is None:
+            output_data['_state'] = 'NO ANALYSIS DONE'
+            output_data['classification'] = 'NO ANALYSIS DONE'
+            return
+
+        if len(urls) < 1:
+            output_data['_state'] = 'NO TASKS FOUND'
+            output_data['classification'] = 'NO TASKS FOUND'
             return
 
         # apply signatures on every url
@@ -98,17 +113,10 @@ def crawl(self, job_id, signatures=None):
             for sig in signatures:
                 task_id = ObjectId()
                 sig = signature(sig)
-                sig.apply_async(args=[str(job_id), url], task_id=str(task_id))
+                sig.apply_async(args=[str(job_id), url, submitter_id], task_id=str(task_id))
 
-        output_data = {
-            'crawler_end_time': end_time
-        }
-
-        if len(urls) < 1:
-            output_data['_state'] = 'NO TASKS FOUND'
-            output_data['classification'] = 'NO TASKS FOUND'
-
-    except (AttributeError, ValueError, DatabaseRecordError, UrlFormatError, UrlNotReachedError, IOError) as error:
+    except (AttributeError, ValueError, DatabaseRecordError, UrlFormatError, UrlNotFoundError, UrlNotReachedError,
+            IOError) as error:
         end_time = datetime.utcnow().isoformat()
 
         output_data = {
