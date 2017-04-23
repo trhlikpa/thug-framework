@@ -46,7 +46,8 @@ RUN git clone https://github.com/trhlikpa/thug-framework-ui.git /tmp/frontend &&
 RUN groupadd -r web && \
   useradd -r -g web -d /home/web -s /sbin/nologin -c "webclient" web && \
   mkdir -p /home/web && \
-  chown -R web:web /home/web /opt/project /entrypoint.sh
+  chown -R web:web /home/web /opt/project /entrypoint.sh && \
+  chmod +x /entrypoint.sh
 
 ENV PYTHONPATH /opt/project/
 

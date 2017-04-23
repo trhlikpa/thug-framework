@@ -29,7 +29,8 @@ RUN pip install -r requirements.txt
 RUN groupadd -r scheduler && \
   useradd -r -g scheduler -d /home/scheduler -s /sbin/nologin -c "scheduler" scheduler && \
   mkdir -p /home/scheduler && \
-  chown -R scheduler:scheduler /home/scheduler /opt/project /entrypoint.sh
+  chown -R scheduler:scheduler /home/scheduler /opt/project /entrypoint.sh && \
+  chmod +x /entrypoint.sh
 
 ENV PYTHONPATH /opt/project/
 
