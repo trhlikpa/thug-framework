@@ -21,3 +21,5 @@ Thug-framework supports concurrent run of multiple Thug instances. Run the follo
 ```
 docker-compose scale worker=5
 ```
+# License
+Thug-framework is licensed under GNU General Public License v2.0
