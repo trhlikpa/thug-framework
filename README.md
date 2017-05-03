@@ -1,6 +1,6 @@
 # Thug-framework
 Framework for automated website checking with client honeypot Thug.
-# Honeypot Thug
+## Honeypot Thug
 Thug is a client honeypot that emulates a web browser in order to detect malicious websites.
 
 Please refer to https://github.com/buffer/thug for more information
