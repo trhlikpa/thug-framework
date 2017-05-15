@@ -1,10 +1,10 @@
 import json
 from flask import g
 from bson import ObjectId
-from webclient.api.models.schedules import create_schedule, get_schedule
-from webclient.dbcontext import db
-from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
-from webclient.api.utils.celeryutils import normalize_job_states
+from webapp.api.models.schedules import create_schedule, get_schedule
+from webapp.dbcontext import db
+from webapp.api.utils.pagination import get_paged_documents, parse_url_parameters
+from webapp.api.utils.celeryutils import normalize_job_states
 from worker.tasks import execute_job, revoke_job
 
 

@@ -1,9 +1,9 @@
 from bson import json_util
 from flask import Response, abort, g
 from flask_restful import Resource, reqparse
-from webclient.api.models.tasks import get_task, delete_task, get_tasks
-from webclient.api.models.tasksubresources import get_task_subresource, get_task_geolocation
-from webclient.api.utils.decorators import handle_errors, login_required
+from webapp.api.models.tasks import get_task, delete_task, get_tasks
+from webapp.api.models.tasksubresources import get_task_subresource, get_task_geolocation
+from webapp.api.utils.decorators import handle_errors, login_required
 
 
 def task_belongs_to_user(task_id):

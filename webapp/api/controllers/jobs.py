@@ -1,8 +1,8 @@
 from bson import json_util
 from flask import Response, g
 from flask_restful import Resource, reqparse, abort
-from webclient.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
-from webclient.api.utils.decorators import handle_errors, login_required
+from webapp.api.models.jobs import get_job, get_jobs, create_job, delete_job, update_job
+from webapp.api.utils.decorators import handle_errors, login_required
 
 
 def job_belongs_to_user(job_id):
@@ -161,7 +161,7 @@ class JobList(Resource):
         # Crawler params
         parser.add_argument('depth_limit', type=int, help='Webcrawler depth limit')
         parser.add_argument('download_delay', type=int, help='Webcrawler download delay')
-        parser.add_argument('randomize_download_delay', type=bool, help='Randomize crawler depth limit')
+        parser.add_argument('randomize_download_delay', type=bool, help='Randomize crawler download delay')
         parser.add_argument('redirect_max_times', type=int, help='Webcrawler max redirects')
         parser.add_argument('robotstxt_obey', type=bool, help='Should webcrawler obey robotstxt rules')
         parser.add_argument('only_internal', type=bool, help='Crawl only initial domain')

@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api
-from webclient.api.controllers import tasks, jobs, schedules, useragents, domevents, auth, plugins, tasksubresources
+from webapp.api.controllers import tasks, jobs, schedules, useragents, domevents, auth, plugins, tasksubresources
 
 api_blueprint = Blueprint('api', __name__, url_prefix='/api/v1.0')
 api = Api(api_blueprint)

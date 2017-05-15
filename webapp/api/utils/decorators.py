@@ -4,8 +4,8 @@ from jwt.exceptions import InvalidTokenError
 from functools import wraps
 from flask import request, g
 from flask_restful import abort
-from webclient import config
-from webclient.api.models.users import get_user
+from webapp import config
+from webapp.api.models.users import get_user
 from werkzeug import exceptions
 
 

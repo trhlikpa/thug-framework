@@ -1,8 +1,8 @@
 from bson import json_util
 from flask import Response, abort, g
 from flask_restful import Resource, reqparse
-from webclient.api.models.schedules import get_schedule, get_schedules, delete_schedule, update_schedule
-from webclient.api.utils.decorators import handle_errors, login_required
+from webapp.api.models.schedules import get_schedule, get_schedules, delete_schedule, update_schedule
+from webapp.api.utils.decorators import handle_errors, login_required
 
 
 def schedule_belongs_to_user(schedule_id):

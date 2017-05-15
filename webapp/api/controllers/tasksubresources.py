@@ -1,8 +1,8 @@
 from bson import json_util
 from flask import Response
 from flask_restful import Resource
-from webclient.api.models.tasksubresources import get_task_subresource
-from webclient.api.utils.decorators import handle_errors, login_required
+from webapp.api.models.tasksubresources import get_task_subresource
+from webapp.api.utils.decorators import handle_errors, login_required
 
 
 def get_subresource(resource_name):

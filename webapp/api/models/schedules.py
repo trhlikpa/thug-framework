@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
-from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
-from webclient.dbcontext import db
+from webapp.api.utils.pagination import get_paged_documents, parse_url_parameters
+from webapp.dbcontext import db
 from bson.objectid import ObjectId
 
 

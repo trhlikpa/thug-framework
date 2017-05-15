@@ -1,8 +1,8 @@
 from bson import json_util
 from flask_restful import Resource, reqparse
 from flask import Response, abort, g
-from webclient.api.models.users import validate_user, create_user, change_password
-from webclient.api.utils.decorators import handle_errors, login_required
+from webapp.api.models.users import validate_user, create_user, change_password
+from webapp.api.utils.decorators import handle_errors, login_required
 
 
 class PasswordChange(Resource):

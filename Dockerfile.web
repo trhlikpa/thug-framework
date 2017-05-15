@@ -1,4 +1,4 @@
-# WEBCLIENT IMAGE
+# WEBAPP IMAGE
 FROM ubuntu:16.04
 
 USER root
@@ -23,28 +23,28 @@ RUN apt-get update && \
 RUN pip install setuptools --upgrade
 
 # CREATE FOLDER STRUCTURE
-COPY ./webclient/entrypoint.sh /
-COPY ./webclient /opt/project/webclient/
-COPY ./config.py /opt/project/webclient/
+COPY ./webapp/entrypoint.sh /
+COPY ./webapp /opt/project/webapp/
+COPY ./config.py /opt/project/webapp/
 COPY ./worker /opt/project/worker/
 COPY ./config.py /opt/project/worker/
 
-WORKDIR /opt/project/webclient/
+WORKDIR /opt/project/webapp/
 
 # INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
 
 # IMPORT THUG WEB BROWSER PERSONALITIES
 RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
-    cp /tmp/thug/thug/DOM/personalities/* /opt/project/webclient/api/models/personalities
+    cp /tmp/thug/thug/DOM/personalities/* /opt/project/webapp/api/models/personalities
 
 # IMPORT FRONTEND
 RUN git clone https://github.com/trhlikpa/thug-framework-ui.git /tmp/frontend && \
-    cp -r /tmp/frontend/dist/* /opt/project/webclient/frontend
+    cp -r /tmp/frontend/dist/* /opt/project/webapp/frontend
 
 # CREATE USER, ENV_PATH
 RUN groupadd -r web && \
-  useradd -r -g web -d /home/web -s /sbin/nologin -c "webclient" web && \
+  useradd -r -g web -d /home/web -s /sbin/nologin -c "webapp" web && \
   mkdir -p /home/web && \
   chown -R web:web /home/web /opt/project /entrypoint.sh && \
   chmod +x /entrypoint.sh

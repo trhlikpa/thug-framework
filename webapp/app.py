@@ -4,7 +4,7 @@ app = Flask(__name__, static_folder='./frontend/static', template_folder='./fron
 app.config.from_object('config')
 
 # Import blueprints
-from webclient.api import api_blueprint
+from webapp.api import api_blueprint
 
 # Register blueprints
 app.register_blueprint(api_blueprint)

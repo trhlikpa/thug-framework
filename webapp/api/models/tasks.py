@@ -1,9 +1,9 @@
 import json
 from bson import ObjectId
-from webclient.dbcontext import db
-from webclient.api.models.jobs import get_job
-from webclient.api.utils.pagination import get_paged_documents, parse_url_parameters
-from webclient.api.utils.celeryutils import normalize_task_states
+from webapp.dbcontext import db
+from webapp.api.models.jobs import get_job
+from webapp.api.utils.pagination import get_paged_documents, parse_url_parameters
+from webapp.api.utils.celeryutils import normalize_task_states
 from worker.tasks import revoke_task
 
 

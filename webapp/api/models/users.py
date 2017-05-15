@@ -2,8 +2,8 @@ import bcrypt
 import datetime
 import jwt
 from bson import ObjectId
-from webclient import config
-from webclient.dbcontext import db
+from webapp import config
+from webapp.dbcontext import db
 from jwt.exceptions import InvalidTokenError
 from validate_email import validate_email
 
