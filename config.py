@@ -1,5 +1,4 @@
-DEBUG = True
-ADMINS = ['email@example.com']
+DEBUG = False
 SECRET_KEY = 'secret-key'
 THREADS_PER_PAGE = 2
 
