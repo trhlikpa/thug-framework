@@ -42,7 +42,7 @@ class Thug(ThugAPI):
 
         ThugAPI.__init__(self)
 
-    def analyze_url(self, url, useragent, referer, java, shockwave, adobepdf, proxy, dom_events, no_cache, web_tracking,
+    def analyze_url(self, url, useragent, referer, java, shockwave, adobepdf, proxy, dom_events, web_tracking,
                     url_classifiers, html_classifiers, js_classifiers, vb_classifiers, sample_classifiers):
         """
         Runs thug analysis with specified parameters
@@ -55,7 +55,6 @@ class Thug(ThugAPI):
         :param adobepdf: adobepdf plugin version
         :param proxy: proxy scheme://[username:password@]host:port
         :param dom_events: comma separated DOM events
-        :param no_cache: disable enable local web cache
         :param web_tracking: disable web tracking
         :param url_classifiers: URL classifier rule
         :param html_classifiers: HTML classifier rule
@@ -92,9 +91,6 @@ class Thug(ThugAPI):
 
         if dom_events:
             self.set_events(dom_events)
-
-        if no_cache:
-            self.set_no_cache()
 
         if web_tracking:
             self.set_web_tracking()

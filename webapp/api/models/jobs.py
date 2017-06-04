@@ -128,7 +128,6 @@ def create_job(data):
         'adobepdf': data.get('adobepdf'),
         'proxy': data.get('proxy'),
         'dom_events': data.get('dom_events'),
-        'no_cache': bool(data.get('no_cache')),
         'web_tracking': bool(data.get('web_tracking')),
         'url_classifiers': data.get('url_classifiers'),
         'html_classifiers': data.get('html_classifiers'),

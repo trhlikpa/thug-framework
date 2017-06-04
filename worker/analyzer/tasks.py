@@ -79,7 +79,6 @@ def analyze(self, job_id, url, submitter_id):
             adobepdf=args.get('adobepdf'),
             proxy=args.get('proxy'),
             dom_events=args.get('dom_events'),
-            no_cache=bool(args.get('no_cache')),
             web_tracking=bool(args.get('web_tracking')),
             url_classifiers=args.get('url_classifiers'),
             html_classifiers=args.get('html_classifiers'),

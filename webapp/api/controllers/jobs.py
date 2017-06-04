@@ -120,7 +120,7 @@ class JobList(Resource):
         Request body parameters:
 
         name, url, useragent, type, eta, max_run_count, cron, interval,
-        referer, java, shockwave, adobepdf, proxy, thug_time_limit, dom_events, no_cache, web_tracking,
+        referer, java, shockwave, adobepdf, proxy, thug_time_limit, dom_events, web_tracking,
         url_classifiers, html_classifiers, js_classifiers, sample_classifiers, depth_limit, download_delay,
         randomize_download_delay, redirect_max_times, robotstxt_obey, only_internal, crawler_time_limit,
         allowed_domains
@@ -150,7 +150,6 @@ class JobList(Resource):
         parser.add_argument('proxy', type=str, help='Proxy format: scheme://[username:password@]host:port')
         parser.add_argument('thug_time_limit', type=int, help='Time limit for thug execution')
         parser.add_argument('dom_events', type=str, help='DOM event separated by comma')
-        parser.add_argument('no_cache', type=bool, help='Disable local web cache')
         parser.add_argument('web_tracking', type=bool, help='Enable web tracking inspection')
         parser.add_argument('url_classifiers', type=list, location='json', help='URL classifiers')
         parser.add_argument('html_classifiers', type=list, location='json', help='HTML classifiers')
