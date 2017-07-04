@@ -1,9 +1,8 @@
 celery>=4.0,<5.0
-flask
-redis
-pymongo
-flask_restful
-bcrypt
-PyJWT
-validate_email
-uwsgi
+flask==0.12.2
+redis==2.10.5
+pymongo==3.4
+flask_restful==0.3.6
+bcrypt==3.1.2
+PyJWT==1.5.2
+validate_email==1.3

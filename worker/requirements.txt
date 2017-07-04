@@ -1,6 +1,6 @@
 celery>=4.0,<5.0
-redis
-pymongo
-geoip2
-scrapy
-python-dateutil
+redis==2.10.5
+pymongo==3.4
+geoip2==2.5
+scrapy==1.4
+python-dateutil==2.6

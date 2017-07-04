@@ -34,6 +34,9 @@ WORKDIR /opt/project/webapp/
 # INSTALL PYTHON DEPENDENCIES
 RUN pip install -r requirements.txt
 
+# INSTALL WEB SERVER
+RUN pip install uwsgi
+
 # IMPORT THUG WEB BROWSER PERSONALITIES
 RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
     cp /tmp/thug/thug/DOM/personalities/* /opt/project/webapp/api/models/personalities
