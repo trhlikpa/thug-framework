@@ -2,6 +2,40 @@ from bson import ObjectId
 
 from webapp.dbcontext import db
 
+def get_behavior(task_id, behavior_id):
+    """
+    Returns behaviour with coresponding code
+
+    :param task_id: task ID
+    :param behavior_id: Behavior ID
+    """
+
+    if not task_id or len(task_id) != 24:
+        return None
+
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+
+    if not task:
+        return None
+
+    analysis = db.analyses.find_one({'_id': ObjectId(task['analysis_id'])})
+
+    if not analysis:
+        return None
+    
+    behavior = db['behaviors'].find_one({'_id': ObjectId(behavior_id), 
+                                         'analysis_id': ObjectId(analysis['_id'])})
+    code_id = behavior['snippet']
+    code = None
+
+    if code_id:
+        code = db['codes'].find_one({'tag': str(code_id), 'analysis_id': ObjectId(analysis['_id'])})
+
+    if code:
+        behavior.update(code)
+        
+    return behavior
+
 
 def get_task_geolocation(task_id):
     """
