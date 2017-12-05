@@ -363,13 +363,14 @@ class BehaviorsWithCode(Resource):
     @login_required
     def get(cls, task_id, behavior_id):
         """
-        Returns behaviors
+        Returns behavior with code
 
-        GET /tasks/<task_id>/behaviors/
+        GET /tasks/<task_id>/behaviors/<behavior_id>/
 
         URL parameters:
 
         :task_id: task ID
+        :behavior_id: behavior ID
         """
         behavior = get_behavior(task_id, behavior_id)
 
