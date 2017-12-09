@@ -2,7 +2,7 @@ from bson import json_util
 from flask import Response, abort, g
 from flask_restful import Resource, reqparse
 from webapp.api.models.tasks import get_task, delete_task, get_tasks
-from webapp.api.models.tasksubresources import get_task_subresource, get_task_geolocation, get_behavior
+from webapp.api.models.tasksubresources import get_task_subresource, get_task_geolocation, get_behavior, get_location
 from webapp.api.utils.decorators import handle_errors, login_required
 
 
@@ -234,6 +234,34 @@ class LocationsByTask(Resource):
         :task_id: task ID
         """
         return get_subresource(task_id, 'locations')
+
+
+class LocationsWithCode(Resource):
+    """
+    Resource representing '/tasks/<task_id>/locations/<location_id>/' api route
+
+    available methods: GET
+    """
+
+    @classmethod
+    @handle_errors
+    @login_required
+    def get(cls, task_id, location_id):
+        """
+        Returns location with code
+
+        GET /tasks/<task_id>/locations/<location_id>/
+
+        URL parameters:
+
+        :task_id: task ID
+        :location_id: location ID
+        """
+        location = get_location(task_id, location_id)
+
+        response = Response(json_util.dumps({'location': location}), mimetype='application/json')
+
+        return response
 
 
 class SamplesByTask(Resource):
