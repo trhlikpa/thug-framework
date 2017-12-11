@@ -35,7 +35,7 @@ def get_location(task_id, location_id):
     if code_id:
         file = db_fs['fs']['files'].find_one({'_id': ObjectId(code_id)})
         if file:
-            file['uploadDate'] = file['uploadDate'].strftime("%B %d, %Y %I:%M %p")
+            file['uploadDate'] = file['uploadDate'].isoformat()
             location['file'] = file
             location['code'] = fs.get(ObjectId(code_id)).read()
 
