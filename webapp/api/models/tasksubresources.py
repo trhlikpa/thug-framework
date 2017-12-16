@@ -1,6 +1,46 @@
 from bson import ObjectId
+import datetime
 
-from webapp.dbcontext import db
+from webapp.dbcontext import db, db_fs, fs
+
+def get_location(task_id, location_id):
+    """
+    Returns location with coresponding code
+
+    :param task_id: task ID
+    :param location_id: Location ID
+    """
+
+    if not task_id or len(task_id) != 24:
+        return None
+
+    task = db.tasks.find_one({'_id': ObjectId(task_id)})
+
+    if not task:
+        return None
+
+    analysis = db.analyses.find_one({'_id': ObjectId(task['analysis_id'])})
+
+    if not analysis:
+        return None
+
+    location = db['locations'].find_one({'_id': ObjectId(location_id),
+                                         'analysis_id': ObjectId(analysis['_id'])})
+
+    location['url'] = db.urls.find_one({'_id': ObjectId(location['url_id'])})['url']
+
+    code_id = location['content_id']
+    file = None
+
+    if code_id:
+        file = db_fs['fs']['files'].find_one({'_id': ObjectId(code_id)})
+        if file:
+            file['uploadDate'] = file['uploadDate'].isoformat()
+            location['file'] = file
+            location['code'] = fs.get(ObjectId(code_id)).read()
+
+    return location
+
 
 def get_behavior(task_id, behavior_id):
     """

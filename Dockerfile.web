@@ -42,7 +42,7 @@ RUN git clone https://github.com/buffer/thug.git /tmp/thug && \
     cp /tmp/thug/thug/DOM/personalities/* /opt/project/webapp/api/models/personalities
 
 # IMPORT FRONTEND
-RUN git clone https://github.com/trhlikpa/thug-framework-ui.git /tmp/frontend && \
+RUN git clone https://github.com/GovCERT-CZ/thug-framework-ui /tmp/frontend && \
     cp -r /tmp/frontend/dist/* /opt/project/webapp/frontend
 
 # CREATE USER, ENV_PATH
